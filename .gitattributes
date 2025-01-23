@@ -1,2 +1,107 @@
-# Auto detect text files and perform LF normalization
+###############################################################################
+# TEXT NORMALIZATION
+###############################################################################
+# Auto-detect text files and normalize LF endings
 * text=auto
+
+# -----------------------------------------------------------------------------
+# Source code files
+# -----------------------------------------------------------------------------
+*.cpp   text eol=lf
+*.h     text eol=lf
+*.hpp   text eol=lf
+*.cs    text eol=lf
+*.m     text eol=lf
+*.mm    text eol=lf
+*.txt   text eol=lf
+*.md    text eol=lf
+*.ini   text eol=lf
+*.json  text eol=lf
+*.xml   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.tsv   text eol=lf
+*.csv   text eol=lf
+
+# -----------------------------------------------------------------------------
+# Unreal Engine-specific files to normalize as text
+# -----------------------------------------------------------------------------
+*.uproject text eol=lf
+*.uplugin  text eol=lf
+*.usf      text eol=lf
+*.manifest text eol=lf
+
+###############################################################################
+# BINARY FILES
+###############################################################################
+# If you plan to track any of these with Git LFS instead, remove them here
+# and add them to the LFS list below.
+
+# Generic images (not tracked in LFS by default below)
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+
+# Archive files
+*.zip   binary
+*.rar   binary
+*.7z    binary
+*.tar   binary
+*.gz    binary
+*.xz    binary
+
+# Other potential binary file types
+*.exe   binary
+*.dll   binary
+*.dylib binary
+*.so    binary
+
+###############################################################################
+# GIT LFS TRACKING
+###############################################################################
+# Below are recommended file types to be handled by Git LFS,
+# keeping your core Git repo small and manageable.
+
+# Unreal Engine Assets
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap   filter=lfs diff=lfs merge=lfs -text
+
+# Common 3D & 2D asset formats
+*.fbx filter=lfs diff=lfs merge=lfs -text
+*.3ds filter=lfs diff=lfs merge=lfs -text
+*.obj filter=lfs diff=lfs merge=lfs -text
+*.gltf filter=lfs diff=lfs merge=lfs -text
+*.glb filter=lfs diff=lfs merge=lfs -text
+*.dae filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.tga filter=lfs diff=lfs merge=lfs -text
+*.dds filter=lfs diff=lfs merge=lfs -text
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.xcf filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+
+# Audio & Music
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.ogg filter=lfs diff=lfs merge=lfs -text
+*.flac filter=lfs diff=lfs merge=lfs -text
+
+# Video files
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.mov filter=lfs diff=lfs merge=lfs -text
+*.avi filter=lfs diff=lfs merge=lfs -text
+*.wmv filter=lfs diff=lfs merge=lfs -text
+*.m4v filter=lfs diff=lfs merge=lfs -text
+
+# Raw data & other heavy files
+*.csv filter=lfs diff=lfs merge=lfs -text
+*.tsv filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+
+
+
+###############################################################################
+# END
+###############################################################################
