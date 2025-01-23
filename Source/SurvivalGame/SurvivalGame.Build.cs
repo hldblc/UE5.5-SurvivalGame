@@ -18,8 +18,8 @@ public class SurvivalGame : ModuleRules
                 "SurvivalGame/Public/Enums",
                 "SurvivalGame/Public/Components",
                 "SurvivalGame/Public/Core",
-                "SurvivalGame/Public/Data",
-                "SurvivalGame/Public/Registry"
+                "SurvivalGame/Public/Data"
+                
                 // Add other public include paths here if necessary
             }
         );
@@ -31,8 +31,8 @@ public class SurvivalGame : ModuleRules
                 "SurvivalGame/Private/Actors",
                 "SurvivalGame/Private/Components",
                 "SurvivalGame/Private/Core",
-                "SurvivalGame/Private/Data",
-                "SurvivalGame/Private/Registry"
+                "SurvivalGame/Private/Data"
+                
                 
                // Add other private include paths here if necessary
             }
