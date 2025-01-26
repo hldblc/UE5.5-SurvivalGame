@@ -2,6 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/Widgets/DefaultHUDLayout.h"
+#include "InputMappingContext.h"
+#include "UObject/SoftObjectPtr.h"
 #include "SurvivalPlayerController.generated.h"
 
 class UInputAction;
@@ -10,38 +13,25 @@ class UMasterUILayout;
 /**
  * @brief Player controller for the survival game
  */
-UCLASS()
+UCLASS(Blueprintable, blueprintType)
 class SURVIVALGAME_API ASurvivalPlayerController : public APlayerController
 {
     GENERATED_BODY()
 
-public:
-    ASurvivalPlayerController();
-
 protected:
     virtual void BeginPlay() override;
-    virtual void SetupInputComponent() override;
 
-    /** Input handling */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-    TObjectPtr<UInputAction> IA_InventoryToggle;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputMappingContext> DefaultInputMapping;
 
-    /** UI References */
-    UPROPERTY(BlueprintReadOnly, Category = "UI")
+    UPROPERTY(EditDefaultsOnly, Category="UI|Class Properties")
+    TSubclassOf<UMasterUILayout> MasterLayoutClass;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UI|References")
     TObjectPtr<UMasterUILayout> RootLayout;
 
-    /** State */
-    UPROPERTY(Replicated)
-    bool bInventoryShown;
-
-    /** Input handlers */
-    void HandleInventoryToggle(const struct FInputActionInstance& Instance);
-
-    /** Client-side inventory functions */
-    UFUNCTION(Client, Reliable)
-    void InventoryOnClient();
-
-    /** Helper functions */
-    void UpdateInputMode(bool bShowUI);
-    void SetMouseCursorVisibility(bool bShow);
+private:
+    void InitializeEnhancedInput();
+    void CreateMasterLayout();
+    
 };

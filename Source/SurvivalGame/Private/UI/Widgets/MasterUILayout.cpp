@@ -1,25 +1,24 @@
 #include "UI/Widgets/MasterUILayout.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "UI/Widgets/GameInventoryLayout.h"
+#include "UI/Widgets/DefaultHUDLayout.h"
 
 UMasterUILayout::UMasterUILayout(const FObjectInitializer& ObjectInitializer)
-    : Super(ObjectInitializer)
+   : Super(ObjectInitializer)
 {
 }
 
-UGameInventoryLayout* UMasterUILayout::PushGameInventoryLayout()
+UDefaultHUDLayout* UMasterUILayout::PushDefaultHUDLayout()
 {
-    // Only proceed if we have valid references
-    if (!ensure(GameInventoryStack && GameInventoryLayoutClass))
+    if (!ensure(GameHUDStack && DefaultHUDLayoutClass))
     {
         return nullptr;
     }
 
-    // Add the game inventory layout to the stack
-    if (UCommonActivatableWidget* Widget = GameInventoryStack->AddWidget(GameInventoryLayoutClass))
+    if (UCommonActivatableWidget* Widget = GameHUDStack->AddWidget(DefaultHUDLayoutClass))
     {
-        GameInventoryLayout = Cast<UGameInventoryLayout>(Widget);
-        return GameInventoryLayout;
+        DefaultHUDLayout = Cast<UDefaultHUDLayout>(Widget);
+        return DefaultHUDLayout;
     }
 
     return nullptr;

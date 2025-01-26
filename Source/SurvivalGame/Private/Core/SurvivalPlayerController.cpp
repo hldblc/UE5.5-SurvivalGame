@@ -1,78 +1,51 @@
-#include "Core/SurvivalPlayerController.h"
-#include "EnhancedInputComponent.h"
+#include "SurvivalPlayerController.h"
+#include "EnhancedInputSubsystems.h"
 #include "UI/Widgets/MasterUILayout.h"
-#include "Net/UnrealNetwork.h"
-
-ASurvivalPlayerController::ASurvivalPlayerController()
-    : bInventoryShown(false)
-{
-}
-
-void ASurvivalPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME(ASurvivalPlayerController, bInventoryShown);
-}
 
 void ASurvivalPlayerController::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
+
+	InitializeEnhancedInput();
+	CreateMasterLayout();
 }
 
-void ASurvivalPlayerController::SetupInputComponent()
+
+
+void ASurvivalPlayerController::InitializeEnhancedInput()
 {
-    Super::SetupInputComponent();
-
-    if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
-    {
-        EnhancedInputComponent->BindAction(IA_InventoryToggle, ETriggerEvent::Started, 
-            this, &ASurvivalPlayerController::HandleInventoryToggle);
-    }
+	// Get Enhanced Input Subsystem
+	if (const ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			// Check if input mapping is valid
+			if (DefaultInputMapping != nullptr) // Direct pointer check
+			{
+				// Add mapping context with priority 0
+				Subsystem->AddMappingContext(DefaultInputMapping, 0);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Missing DefaultInputMapping in SurvivalPlayerController"));
+			}
+		}
+	}
 }
 
-void ASurvivalPlayerController::HandleInventoryToggle(const FInputActionInstance& Instance)
+void ASurvivalPlayerController::CreateMasterLayout()
 {
-    InventoryOnClient();
+	if (!IsLocalController()) return;
+	if (MasterLayoutClass && !RootLayout)
+	{
+		RootLayout = CreateWidget<UMasterUILayout>(this, MasterLayoutClass);
+		if (RootLayout)
+		{
+			RootLayout->AddToViewport();
+			RootLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			RootLayout->PushDefaultHUDLayout();
+			
+		}
+	}
 }
 
-void ASurvivalPlayerController::InventoryOnClient_Implementation()
-{
-    // Add delay as per SmartPoly's implementation
-    FTimerHandle DelayHandle;
-    GetWorld()->GetTimerManager().SetTimer(DelayHandle, [this]()
-    {
-        if (!bInventoryShown)
-        {
-            if (RootLayout)
-            {
-                RootLayout->PushGameInventoryLayout();
-                UpdateInputMode(true);
-                SetMouseCursorVisibility(true);
-                bInventoryShown = true;
-            }
-        }
-        else
-        {
-            UpdateInputMode(false);
-            SetMouseCursorVisibility(false);
-            bInventoryShown = false;
-        }
-    }, 0.1f, false);
-}
-
-void ASurvivalPlayerController::UpdateInputMode(bool bShowUI)
-{
-    if (bShowUI)
-    {
-        SetInputMode(FInputModeUIOnly());
-    }
-    else
-    {
-        SetInputMode(FInputModeGameOnly());
-    }
-}
-
-void ASurvivalPlayerController::SetMouseCursorVisibility(bool bShow)
-{
-    bShowMouseCursor = bShow;
-}
