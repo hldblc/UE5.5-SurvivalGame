@@ -18,9 +18,20 @@ class SURVIVALGAME_API ASurvivalPlayerController : public APlayerController
 {
     GENERATED_BODY()
 
+
+   
 protected:
     virtual void BeginPlay() override;
+    virtual void SetupInputComponent() override;
 
+    bool bInventoryShown;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Input|Actions")
+    TObjectPtr<UInputAction> IA_InventoryToggle;
+
+    UFUNCTION(Client, Reliable)
+    void InventoryOnClient();
+    
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputMappingContext> DefaultInputMapping;
 

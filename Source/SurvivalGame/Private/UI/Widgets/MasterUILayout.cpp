@@ -23,3 +23,20 @@ UDefaultHUDLayout* UMasterUILayout::PushDefaultHUDLayout()
 
     return nullptr;
 }
+
+
+UGameInventoryLayout* UMasterUILayout::PushGameInventoryLayout()
+{
+    if (!ensure(GameInventoryStack && GameInventoryLayoutClass))
+    {
+        return nullptr;
+    }
+
+    if (UCommonActivatableWidget* Widget = GameInventoryStack->AddWidget(GameInventoryLayoutClass))
+    {
+        GameInventoryLayout = Cast<UGameInventoryLayout>(Widget);
+        return GameInventoryLayout;
+    }
+
+    return nullptr;
+}

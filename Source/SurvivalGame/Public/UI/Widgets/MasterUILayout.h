@@ -22,6 +22,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI|Layout")
     UDefaultHUDLayout* PushDefaultHUDLayout();
 
+    UFUNCTION(BlueprintCallable, Category = "UI|Layout")
+    UGameInventoryLayout* PushGameInventoryLayout();
+
 protected:
     /** Stack containers */
     UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
@@ -43,4 +46,7 @@ protected:
     /** Active layout references */
     UPROPERTY(BlueprintReadOnly, Category = "UI|Runtime")
     TObjectPtr<UDefaultHUDLayout> DefaultHUDLayout;
+
+    UPROPERTY(BlueprintReadOnly, Category = "UI|Runtime")
+    TObjectPtr<UGameInventoryLayout> GameInventoryLayout;
 };

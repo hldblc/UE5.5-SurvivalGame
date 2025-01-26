@@ -1,5 +1,6 @@
 #include "SurvivalPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
 #include "UI/Widgets/MasterUILayout.h"
 
 void ASurvivalPlayerController::BeginPlay()
@@ -10,6 +11,35 @@ void ASurvivalPlayerController::BeginPlay()
 	CreateMasterLayout();
 }
 
+void ASurvivalPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (UEnhancedInputComponent* EnhancedInput = CastChecked<UEnhancedInputComponent>(InputComponent))
+	{
+		EnhancedInput->BindAction(IA_InventoryToggle, ETriggerEvent::Started, 
+			this, &ASurvivalPlayerController::InventoryOnClient);
+	}
+}
+
+void ASurvivalPlayerController::InventoryOnClient_Implementation()
+{
+	if (!RootLayout) return;
+    
+	if (!bInventoryShown)
+	{
+		RootLayout->PushGameInventoryLayout();
+		SetInputMode(FInputModeUIOnly());
+		bShowMouseCursor = true;
+		bInventoryShown = true;
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
+		bShowMouseCursor = false;
+		bInventoryShown = false;
+	}
+}
 
 
 void ASurvivalPlayerController::InitializeEnhancedInput()
