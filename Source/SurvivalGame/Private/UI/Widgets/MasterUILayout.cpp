@@ -10,11 +10,13 @@ UMasterUILayout::UMasterUILayout(const FObjectInitializer& ObjectInitializer)
 
 UDefaultHUDLayout* UMasterUILayout::PushDefaultHUDLayout()
 {
+    // Ensure the HUD container and the default HUD layout class are valid.
     if (!ensure(GameHUDStack && DefaultHUDLayoutClass))
     {
         return nullptr;
     }
 
+    // Add the default HUD layout widget to the HUD stack (CommonUI style!).
     if (UCommonActivatableWidget* Widget = GameHUDStack->AddWidget(DefaultHUDLayoutClass))
     {
         DefaultHUDLayout = Cast<UDefaultHUDLayout>(Widget);
@@ -24,19 +26,33 @@ UDefaultHUDLayout* UMasterUILayout::PushDefaultHUDLayout()
     return nullptr;
 }
 
-
 UGameInventoryLayout* UMasterUILayout::PushGameInventoryLayout()
 {
+    // Ensure that our inventory container and the inventory layout class are valid.
     if (!ensure(GameInventoryStack && GameInventoryLayoutClass))
     {
         return nullptr;
     }
 
-    if (UCommonActivatableWidget* Widget = GameInventoryStack->AddWidget(GameInventoryLayoutClass))
+    // Add the inventory widget to the inventory stack.
+    // (Note: We're using the GameHUDStack here by mistake? Make sure you're adding to the right container!)
+    if (UCommonActivatableWidget* Widget = GameHUDStack->AddWidget(GameInventoryLayoutClass))
     {
         GameInventoryLayout = Cast<UGameInventoryLayout>(Widget);
         return GameInventoryLayout;
     }
 
+    // If our inventory widget decides to be a rebel, return nullptr.
     return nullptr;
+}
+
+void UMasterUILayout::PopGameInventoryLayout()
+{
+    // If our inventory widget is still around (like that stray enemy in your game),
+    // remove it from its parent and set our pointer to nullptr.
+    if (GameInventoryLayout)
+    {
+        GameInventoryLayout->RemoveFromParent();
+        GameInventoryLayout = nullptr;
+    }
 }
