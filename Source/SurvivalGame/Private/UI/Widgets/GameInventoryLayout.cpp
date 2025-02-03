@@ -2,6 +2,7 @@
 #include "UI/Widgets/InventoryWidget.h"
 #include "Components/WidgetSwitcher.h"
 #include "CommonButtonBase.h" // CommonUI's button base class
+#include "SurvivalPlayerController.h"
 
 UGameInventoryLayout::UGameInventoryLayout(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -22,6 +23,13 @@ void UGameInventoryLayout::NativeConstruct()
 
 void UGameInventoryLayout::OnInventoryExitButtonClicked()
 {
+    
+    if (ASurvivalPlayerController* PC = Cast<ASurvivalPlayerController>(GetOwningPlayer()))
+    {
+        IControllerInterface::Execute_CloseInventory(PC);
+    }
+
+    
     // When the exit button is clicked, we trigger the widget deactivation flow.
     // This typically fires an OnDeactivated event in Blueprint, where you can handle inventory closure.
     // Consider it like hitting the "escape" key on your inventory—time to pack it up!

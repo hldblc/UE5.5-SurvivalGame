@@ -63,7 +63,8 @@ protected:
      */
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
     void CloseInventory();
-    virtual void CloseInventory_Implementation();
+    
+    virtual void CloseInventory_Implementation() override;
 
 private:
     /** Helper function to initialize our CommonUI-enhanced input mappings. */
