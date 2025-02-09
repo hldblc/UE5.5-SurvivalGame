@@ -2,6 +2,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "UI/Widgets/MasterUILayout.h"
+#include "UI/Widgets/Inventory/InventorySlot.h"
 
 ASurvivalPlayerController::ASurvivalPlayerController()
 {
@@ -117,3 +118,11 @@ void ASurvivalPlayerController::CloseInventory_Implementation()
     bShowMouseCursor = false;
     bInventoryShown = false;
 }
+
+void ASurvivalPlayerController::GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex)
+{
+    
+}
+
+
+

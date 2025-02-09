@@ -1,6 +1,8 @@
 #pragma once
 
 #include "UObject/Interface.h"
+#include "Enums/ContainerType.h"
+#include "Data/Struct/ItemStructure.h"
 #include "ControllerInterface.generated.h"
 
 /**
@@ -20,4 +22,8 @@ public:
 	// BlueprintNativeEvent to allow a C++ default implementation or a Blueprint override.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
 	void CloseInventory();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
+	void UpdateItemSlot(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index);
+	
 };

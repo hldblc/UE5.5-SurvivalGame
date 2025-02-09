@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Enums/ContainerType.h"
+#include "Data/Struct/ItemStructure.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/Widgets/DefaultHUDLayout.h"
 #include "InputMappingContext.h"
@@ -63,8 +65,13 @@ protected:
      */
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
     void CloseInventory();
-    
     virtual void CloseInventory_Implementation() override;
+
+
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    void GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex);
+
+    
 
 private:
     /** Helper function to initialize our CommonUI-enhanced input mappings. */
