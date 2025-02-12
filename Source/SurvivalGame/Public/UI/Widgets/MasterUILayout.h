@@ -4,6 +4,7 @@
 #include "CommonUserWidget.h"  // Base class from CommonUI.
 #include "DefaultHUDLayout.h"
 #include "GameInventoryLayout.h"
+#include "Widgets/CommonActivatableWidgetContainer.h"
 #include "MasterUILayout.generated.h"
 
 class UCommonActivatableWidgetContainerBase;
@@ -45,18 +46,21 @@ public:
     TObjectPtr<UGameInventoryLayout> GameInventoryLayout;
 
 
+    UFUNCTION(BlueprintPure, Category = "UI|Runtime")
+    UGameInventoryLayout* GetGameInventoryLayout() const { return GameInventoryLayout; }
+    
 protected:
     /** Container for the HUD widgets (set up in UMG using CommonUI containers). */
     UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-    TObjectPtr<UCommonActivatableWidgetContainerBase> GameHUDStack;
+    TObjectPtr<UCommonActivatableWidgetStack> GameHUDStack;
 
     /** Container for the inventory widgets. */
     UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-    TObjectPtr<UCommonActivatableWidgetContainerBase> GameInventoryStack;
+    TObjectPtr<UCommonActivatableWidgetStack> GameInventoryStack;
 
     /** Container for the menu widgets. */
     UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-    TObjectPtr<UCommonActivatableWidgetContainerBase> GameMenuStack;
+    TObjectPtr<UCommonActivatableWidgetStack> GameMenuStack;
 
     /** Widget class for the game inventory layout (set in the Editor). */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Config")

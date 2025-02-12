@@ -1,6 +1,8 @@
 // ItemContainerBase.cpp
 
 #include "Components/Inventory/ItemContainerBase.h"
+
+#include "Interfaces/PlayerInterface.h"
 #include "Net/UnrealNetwork.h"
 
 UItemContainerBase::UItemContainerBase()
@@ -54,6 +56,32 @@ void UItemContainerBase::Server_AddItem_Implementation(const FItemStructure& Ite
     AddItem(Item);
 }
 
+//===========================================UpdateUI====================================================
+
+
+void UItemContainerBase::UpdateUI(int32 Index, const FItemStructure& ItemInfo)
+{
+    AActor* OwnerActor = GetOwner();
+    if (!OwnerActor)
+    {
+        return;
+    }
+
+    switch (ContainerType)
+    {
+    case E_ContainerType::Inventory:
+        break;
+    default:
+        break;
+    }
+    
+    if (OwnerActor->Implements<UPlayerInterface>())
+    {
+        IPlayerInterface::Execute_UpdateItem(OwnerActor,ContainerType, ItemInfo, Index);
+    } 
+    
+
+}
 
 //===========================================FindEmptySlot====================================================
 bool UItemContainerBase::FindEmptySlot(bool& Success, int32& EmptyIndex) const
@@ -95,6 +123,8 @@ bool UItemContainerBase::AddItem(const FItemStructure& Item)
     if (Success)
     {
         Items[LocalEmptyIndex] = LocalItemInfo;
+
+        UpdateUI(LocalEmptyIndex, LocalItemInfo);
         return true;
     }
 

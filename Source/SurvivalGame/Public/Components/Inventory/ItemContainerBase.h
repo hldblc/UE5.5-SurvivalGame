@@ -8,8 +8,6 @@
 #include "Enums/ContainerType.h"
 #include "ItemContainerBase.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnContainerUpdated, const TArray<FItemStructure>&, Items);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSlotUpdated, int32, SlotIndex, const FItemStructure&, Item);
 
 /**
  * @brief Base component class for handling item storage and management
@@ -50,6 +48,9 @@ protected:
 
     UFUNCTION(Server, Reliable)
     void Server_AddItem(const FItemStructure& Item);
+
+    UFUNCTION(BlueprintCallable, Category = "Container|Events")
+    void UpdateUI(int32 Index, const FItemStructure& ItemInfo);
 
 public:
     /** Find empty slot in container */

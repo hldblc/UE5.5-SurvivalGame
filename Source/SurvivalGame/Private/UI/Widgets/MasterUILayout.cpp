@@ -34,22 +34,18 @@ UGameInventoryLayout* UMasterUILayout::PushGameInventoryLayout()
         return nullptr;
     }
 
-    // Add the inventory widget to the inventory stack.
-    // (Note: We're using the GameHUDStack here by mistake? Make sure you're adding to the right container!)
-    if (UCommonActivatableWidget* Widget = GameHUDStack->AddWidget(GameInventoryLayoutClass))
+    // Add the inventory widget to the correct inventory stack.
+    if (UCommonActivatableWidget* Widget = GameInventoryStack->AddWidget(GameInventoryLayoutClass))
     {
         GameInventoryLayout = Cast<UGameInventoryLayout>(Widget);
         return GameInventoryLayout;
     }
-
-    // If our inventory widget decides to be a rebel, return nullptr.
     return nullptr;
 }
 
 void UMasterUILayout::PopGameInventoryLayout()
 {
-    // If our inventory widget is still around (like that stray enemy in your game),
-    // remove it from its parent and set our pointer to nullptr.
+    // If our inventory widget is still around, remove it from its parent and set our pointer to nullptr.
     if (GameInventoryLayout)
     {
         GameInventoryLayout->RemoveFromParent();

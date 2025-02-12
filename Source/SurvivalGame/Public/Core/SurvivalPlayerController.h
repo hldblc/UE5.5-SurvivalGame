@@ -8,6 +8,7 @@
 #include "InputMappingContext.h"
 #include "UObject/SoftObjectPtr.h"
 #include "SurvivalGame/Public/Interfaces/ControllerInterface.h"  // Our CommonUI-friendly interface.
+#include "UI/Widgets/Inventory/InventorySlot.h"
 #include "SurvivalPlayerController.generated.h"
 
 class UInputAction;
@@ -69,10 +70,14 @@ protected:
 
 
     UFUNCTION(BlueprintCallable, Category = "Inventory")
-    void GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex);
+    UInventorySlot* GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex);
 
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Inventory")
+    void UpdateItemSlot(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index);
     
-
+    UFUNCTION(BlueprintCallable, Client, Reliable, Category = "Inventory")
+    void Client_UpdateSlot(E_ContainerType Container, FItemStructure ItemInfo, int32 Index);
+    
 private:
     /** Helper function to initialize our CommonUI-enhanced input mappings. */
     void InitializeEnhancedInput();
