@@ -18,7 +18,10 @@ void UItemContainerGrid::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    UE_LOG(LogTemp, Log, TEXT("NativeConstruct: InventorySlotClass is %s"), InventorySlotClass ? TEXT("Valid") : TEXT("Null"));
+    // Add debug logging
+    UE_LOG(LogTemp, Log, TEXT("ItemContainerGrid::NativeConstruct - Grid: %s, SlotClass: %s"), 
+        Grid ? TEXT("Valid") : TEXT("Invalid"),
+        InventorySlotClass ? TEXT("Valid") : TEXT("Invalid"));
 
     if (!Grid)
     {
@@ -27,7 +30,6 @@ void UItemContainerGrid::NativeConstruct()
     }
 
     UE_LOG(LogTemp, Log, TEXT("Creating %d inventory slots"), TotalSlots);
-    
     AddSlots(TotalSlots);
 }
 

@@ -28,18 +28,34 @@ UDefaultHUDLayout* UMasterUILayout::PushDefaultHUDLayout()
 
 UGameInventoryLayout* UMasterUILayout::PushGameInventoryLayout()
 {
-    // Ensure that our inventory container and the inventory layout class are valid.
-    if (!ensure(GameInventoryStack && GameInventoryLayoutClass))
+    UE_LOG(LogTemp, Log, TEXT("PushGameInventoryLayout() Called."));
+    if (!ensure(GameInventoryStack))
     {
+        UE_LOG(LogTemp, Warning, TEXT("GameInventoryStack is nullptr!"));
+        return nullptr;
+    }
+    if (!ensure(GameInventoryLayoutClass))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GameInventoryLayoutClass is nullptr! Did you set it in the BP?"));
         return nullptr;
     }
 
-    // Add the inventory widget to the correct inventory stack.
-    if (UCommonActivatableWidget* Widget = GameInventoryStack->AddWidget(GameInventoryLayoutClass))
+    UCommonActivatableWidget* Widget = GameInventoryStack->AddWidget(GameInventoryLayoutClass);
+    if (Widget)
     {
         GameInventoryLayout = Cast<UGameInventoryLayout>(Widget);
+        if (GameInventoryLayout)
+        {
+            UE_LOG(LogTemp, Log, TEXT("PushGameInventoryLayout: Successfully created %s"), *GameInventoryLayout->GetName());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("PushGameInventoryLayout: Widget wasn't a UGameInventoryLayout!"));
+        }
         return GameInventoryLayout;
     }
+
+    UE_LOG(LogTemp, Warning, TEXT("PushGameInventoryLayout: AddWidget returned nullptr!"));
     return nullptr;
 }
 

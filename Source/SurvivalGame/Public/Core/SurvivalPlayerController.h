@@ -7,12 +7,15 @@
 #include "UI/Widgets/DefaultHUDLayout.h"
 #include "InputMappingContext.h"
 #include "UObject/SoftObjectPtr.h"
-#include "SurvivalGame/Public/Interfaces/ControllerInterface.h"  // Our CommonUI-friendly interface.
-#include "UI/Widgets/Inventory/InventorySlot.h"
-#include "SurvivalPlayerController.generated.h"
+#include "SurvivalGame/Public/Interfaces/ControllerInterface.h"
 
+// Forward declarations
 class UInputAction;
 class UMasterUILayout;
+class UGameInventoryLayout;  // Add this forward declaration
+class UInventorySlot;
+
+#include "SurvivalPlayerController.generated.h"
 
 /**
  * @brief Player controller for the survival game.
@@ -26,6 +29,12 @@ class SURVIVALGAME_API ASurvivalPlayerController : public APlayerController, pub
 public:
     // Constructor.
     ASurvivalPlayerController();
+
+    // Cache the game inventory layout for later use
+    void CacheGameInventoryLayout(UGameInventoryLayout* Layout);
+    
+    // Get the cached game inventory layout
+    UGameInventoryLayout* GetCachedGameInventoryLayout() const { return CachedGameInventoryLayout; }
 
 protected:
     virtual void BeginPlay() override;
@@ -45,12 +54,16 @@ protected:
     TSubclassOf<UMasterUILayout> MasterLayoutClass;
 
     /** Reference to our Master UI Layout instance that organizes our CommonUI stacks. */
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UI|References")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI|References")
     TObjectPtr<UMasterUILayout> RootLayout;
 
     /** Flag indicating whether the inventory is currently shown. */
     UPROPERTY(Transient)
     bool bInventoryShown{false};
+
+    /** Cached reference to the game inventory layout */
+    UPROPERTY()
+    TObjectPtr<UGameInventoryLayout> CachedGameInventoryLayout;
 
     /** 
      * Client function to toggle the inventory UI.
@@ -68,7 +81,9 @@ protected:
     void CloseInventory();
     virtual void CloseInventory_Implementation() override;
 
-
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    void InitializeInventoryWidget();
+    
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     UInventorySlot* GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex);
 
@@ -80,7 +95,7 @@ protected:
     
 private:
     /** Helper function to initialize our CommonUI-enhanced input mappings. */
-    void InitializeEnhancedInput();
+    void InitializeEnhancedInput() const;
 
     /** Helper function to create and add our Master UI Layout widget. */
     void CreateMasterLayout();

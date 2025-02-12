@@ -1,13 +1,15 @@
+// GameInventoryLayout.h
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CommonActivatableWidget.h" // Using CommonUI's activatable widget base.
-#include "UI/Widgets/InventoryWidget.h"  // (Optional) Reference if you use a custom InventoryWidget.
+#include "CommonActivatableWidget.h" 
+#include "UI/Widgets/InventoryWidget.h"  
 #include "GameInventoryLayout.generated.h"
 
 class UWidgetSwitcher;
 class UInventoryWidget;
-class UCommonButtonBase; // From CommonUI
+class UCommonButtonBase;
+class ASurvivalPlayerController;
 
 /**
  * @brief Layout widget managing the game's inventory interface tabs.
@@ -22,9 +24,20 @@ public:
     // Constructor using the object initializer.
     UGameInventoryLayout(const FObjectInitializer& ObjectInitializer);
 
+    /** Gets the main inventory widget */
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    UInventoryWidget* GetInventoryWidget() const { return InventoryWidget; }
+
+    /** Cache this layout in the player controller */
+    void CacheInPlayerController();
+
 protected:
     // Called when the widget is constructed.
     virtual void NativeConstruct() override;
+
+    /** Main inventory widget reference. Bind this in Blueprint. */
+    UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+    TObjectPtr<UInventoryWidget> InventoryWidget;
 
     /** Reference to the exit button (bind this in your UMG Designer using CommonUI's button class). */
     UPROPERTY(meta = (BindWidget))
@@ -33,4 +46,9 @@ protected:
     /** Handler for when the exit button is clicked. */
     UFUNCTION()
     void OnInventoryExitButtonClicked();
+
+private:
+    /** Cached reference to the owning player controller */
+    UPROPERTY()
+    TObjectPtr<ASurvivalPlayerController> CachedPlayerController;
 };
