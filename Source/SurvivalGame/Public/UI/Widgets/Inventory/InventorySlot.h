@@ -18,6 +18,8 @@ class SURVIVALGAME_API UInventorySlot : public UCommonButtonBase
 	GENERATED_BODY()
 
 public:
+	UInventorySlot();
+	
 	// Updates the slot with new item info.
 	UFUNCTION(BlueprintCallable, Category="Inventory|Slot")
 	void UpdateSlot(FItemStructure ItemInfo);
@@ -39,7 +41,7 @@ protected:
 
 	// Updates all UI elements based on the loaded item.
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Slot")
-	void UpdateUIElements();
+	void UpdateUIElements() const;
 
 	// Indicates whether this slot currently has an item.
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item")
