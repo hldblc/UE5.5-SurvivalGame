@@ -4,18 +4,20 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Widgets/MasterUILayout.h"
-#include "UI/Widgets/GameInventoryLayout.h" 
+#include "UI/Widgets/GameInventoryLayout.h"
+#include "UI/Widgets/InventoryWidget.h"
 #include "Enums/ContainerType.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/Widgets/Inventory/InventorySlot.h"
 #include "UI/Widgets/Inventory/ItemContainerGrid.h"
 
-// Constructor: Kick things off by ensuring our RootLayout pointer is as empty as our coffee cup on Monday morning.
+//==================================================Constructor==================================================
 ASurvivalPlayerController::ASurvivalPlayerController()
 {
     RootLayout = nullptr;
 }
 
-// BeginPlay: The startup party where we set up our input dance moves and create our very own UI stage.
+//==================================================BeginPlay==================================================
 void ASurvivalPlayerController::BeginPlay()
 {
     Super::BeginPlay();
@@ -30,7 +32,7 @@ void ASurvivalPlayerController::BeginPlay()
     
 }
 
-// EndPlay: Time to clean up after the party—remove the UI stage and put everything away like a pro.
+//==================================================EndPlay==================================================
 void ASurvivalPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     if (RootLayout)
@@ -45,8 +47,7 @@ void ASurvivalPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason
     Super::EndPlay(EndPlayReason);
 }
 
-// SetupInputComponent: Bind our input actions with style using CommonUI's enhanced system.
-// Think of it as teaching your character to groove to the beat.
+//==================================================SetupInputComponent==================================================
 void ASurvivalPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
@@ -63,7 +64,7 @@ void ASurvivalPlayerController::SetupInputComponent()
     }
 }
 
-// InitializeEnhancedInput: Configure our fancy input mappings so our UI can strut its stuff.
+//==================================================InitializeEnhancedInput==================================================
 void ASurvivalPlayerController::InitializeEnhancedInput() const
 {
     // Task: Get our local player and add the default input mapping – think of it as handing out VIP passes.
@@ -83,8 +84,7 @@ void ASurvivalPlayerController::InitializeEnhancedInput() const
     }
 }
 
-// CreateMasterLayout: Build the main UI stage (Master UI Layout) if it hasn't been set up already.
-// This is where all the magic (and quirky UI elements) happens.
+//==================================================CreateMasterLayout==================================================
 void ASurvivalPlayerController::CreateMasterLayout()
 {
     // Task: Only create the stage for local controllers (because remote ones aren’t invited to this party).
@@ -99,11 +99,14 @@ void ASurvivalPlayerController::CreateMasterLayout()
             // Task: Add our stage to the viewport and kick off the default HUD layout.
             RootLayout->AddToViewport();
             RootLayout->PushDefaultHUDLayout();
+            
         }
     }
 }
 
-// InventoryOnClient_Implementation: Toggle the inventory view when our client decides it's time to check out the goods.
+
+
+//==================================================InventoryOnClient==================================================
 void ASurvivalPlayerController::InventoryOnClient_Implementation()
 {
     UE_LOG(LogTemp, Log, TEXT("InventoryOnClient_Implementation - Starting"));
@@ -146,8 +149,9 @@ void ASurvivalPlayerController::InventoryOnClient_Implementation()
     }
 }
 
-// CloseInventory_Implementation: Close the inventory view and return control to the game.
-// Time to wrap up the performance and go back to business.
+
+
+//==================================================CloseInventory==================================================
 void ASurvivalPlayerController::CloseInventory_Implementation()
 {
     // Task: Tell our Master UI Layout to remove the inventory widget from the stage.
@@ -169,129 +173,119 @@ void ASurvivalPlayerController::CloseInventory_Implementation()
     }
 }
 
+
+
+//==================================================
 void ASurvivalPlayerController::InitializeInventoryWidget()
 {
     if (!RootLayout)
     {
         UE_LOG(LogTemp, Warning, TEXT("InitializeInventoryWidget: RootLayout is null"));
-        return;
+        return; 
     }
 
-    // Push the game inventory layout onto the inventory stack
     UGameInventoryLayout* GameInventoryLayout = RootLayout->PushGameInventoryLayout();
     bInventoryShown = true;
 
     if (GameInventoryLayout)
     {
         GameInventoryLayout->DeactivateWidget();
-        UE_LOG(LogTemp, Log, TEXT("InitializeInventoryWidget: Inventory widget deactivated after push."));
+        UE_LOG(LogTemp, Log, TEXT("InitializeInventoryWidget: GameInventoryLayout pushed successfully"));
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("InitializeInventoryWidget: GameInventoryLayout is null"));
+        UE_LOG(LogTemp, Warning, TEXT("InitializeInventoryWidget: Failed to push GameInventoryLayout"));
     }
-    
 }
 
-// GetInventoryWidget: Retrieve a specific inventory slot widget based on container type and slot index.
-// Think of this as finding the correct seat in our UI auditorium.
-// In SurvivalPlayerController.cpp
-UInventorySlot* ASurvivalPlayerController::GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex)
-{
-    UE_LOG(LogTemp, Log, TEXT("GetInventoryWidget - CachedLayout: %s"), 
-        CachedGameInventoryLayout ? TEXT("Valid") : TEXT("Invalid"));
 
-    if (!CachedGameInventoryLayout)
+
+//==================================================GetInventorySlotWidget==================================================
+UInventorySlot* ASurvivalPlayerController::GetInventorySlotWidget(E_ContainerType ContainerType, int32 SlotIndex)
+{
+    // 1. Check if the main UI container (RootLayout) is available.
+    if (!RootLayout)
     {
-        if (RootLayout)
+        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: RootLayout is null"));
+        return nullptr;
+    }
+
+    // 2. If inventory isn't shown, temporarily show it to initialize the widgets
+    bool bWasInventoryHidden = !bInventoryShown;
+    if (bWasInventoryHidden)
+    {
+        UGameInventoryLayout* InvLayout = RootLayout->PushGameInventoryLayout();
+        if (!InvLayout)
         {
-            CachedGameInventoryLayout = RootLayout->GetGameInventoryLayout();
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Both CachedLayout and RootLayout are invalid!"));
+            UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Failed to create GameInventoryLayout"));
             return nullptr;
         }
     }
 
-    UItemContainerGrid* ContainerGrid = nullptr;
-    
+    // 3. Now try to get the layout
+    UGameInventoryLayout* GameInventoryLayout = RootLayout->GetGameInventoryLayout();
+    if (!GameInventoryLayout)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: GameInventoryLayout is null"));
+        return nullptr;
+    }
+
+    UInventoryWidget* InventoryWidget = GameInventoryLayout->GetInventoryWidget();
+    if (!InventoryWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: InventoryWidget is null"));
+        return nullptr;
+    }
+
+    UItemContainerGrid* ItemContainerGrid = InventoryWidget->GetItemContainerGrid();
+    if (!ItemContainerGrid)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: ItemContainerGrid is null"));
+        return nullptr;
+    }
+
+    if (!ItemContainerGrid->Slots.IsValidIndex(SlotIndex))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Invalid slot index"));
+        return nullptr;
+    }
+
+    // 4. If we temporarily showed the inventory, hide it again
+    if (bWasInventoryHidden && GameInventoryLayout)
+    {
+        GameInventoryLayout->DeactivateWidget();
+    }
+
+    // 5. Return the appropriate slot
     switch (ContainerType)
     {
-    case E_ContainerType::Inventory:
-        {
-            UInventoryWidget* InventoryWidget = CachedGameInventoryLayout->GetInventoryWidget();
-            UE_LOG(LogTemp, Log, TEXT("GetInventoryWidget - InventoryWidget: %s"), 
-                InventoryWidget ? TEXT("Valid") : TEXT("Invalid"));
-            
-            if (InventoryWidget)
-            {
-                ContainerGrid = InventoryWidget->GetItemContainerGrid();
-                UE_LOG(LogTemp, Log, TEXT("GetInventoryWidget - ContainerGrid: %s, Slots: %d"), 
-                    ContainerGrid ? TEXT("Valid") : TEXT("Invalid"),
-                    ContainerGrid ? ContainerGrid->Slots.Num() : 0);
-            }
-            break;
-        }
-    default:
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Unsupported container type!"));
-        return nullptr;
+        case E_ContainerType::Inventory:
+            return ItemContainerGrid->Slots[SlotIndex];
+        default:
+            return ItemContainerGrid->Slots[SlotIndex];
     }
-
-    if (!ContainerGrid)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Container grid not found!"));
-        return nullptr;
-    }
-
-    // Handle both 0-based and 1-based indices
-    int32 ArrayIndex = SlotIndex;
-    if (SlotIndex > 0)
-    {
-        ArrayIndex = SlotIndex - 1;  // Convert 1-based to 0-based if necessary
-    }
-
-    if (!ContainerGrid->Slots.IsValidIndex(ArrayIndex))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Invalid slot index %d (Array index: %d)! Total slots: %d"), 
-            SlotIndex, ArrayIndex, ContainerGrid->Slots.Num());
-        return nullptr;
-    }
-
-    UE_LOG(LogTemp, Log, TEXT("GetInventoryWidget: Successfully found slot at index %d (Array index: %d)"), 
-        SlotIndex, ArrayIndex);
-    return ContainerGrid->Slots[ArrayIndex];
 }
 
-// UpdateItemSlot_Implementation: Update an inventory slot by passing the update along to our client function.
-// This function is like the secret memo that gets forwarded to the right team member.
+
+
+//==================================================UpdateItemSlot==================================================
 void ASurvivalPlayerController::UpdateItemSlot_Implementation(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index)
 {
     Client_UpdateSlot_Implementation(ContainerType, ItemInfo, Index);
 }
 
-// Client_UpdateSlot_Implementation: The client-side method to update an inventory slot.
+
+
+//==================================================Client_UpdateSlot==================================================
 void ASurvivalPlayerController::Client_UpdateSlot_Implementation(E_ContainerType Container, FItemStructure ItemInfo, int32 Index)
 {
-    UE_LOG(LogTemp, Log, TEXT("Client_UpdateSlot_Implementation - Container: %d, Index: %d"), 
-        (int32)Container, Index);
+    UInventorySlot* InventorSlot = GetInventorySlotWidget(Container, Index);
 
-    UInventorySlot* SlotWidget = GetInventoryWidget(Container, Index);
-    
-    if (IsValid(SlotWidget))
+    if (IsValid(InventorSlot))
     {
-        SlotWidget->UpdateSlot(ItemInfo);
-        UE_LOG(LogTemp, Log, TEXT("Successfully updated slot at index %d"), Index);
+        // Update the slot with the new item info
+        InventorSlot->UpdateSlot(ItemInfo);
     }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Client_UpdateSlot_Implementation: Inventory slot at index %d is missing"), Index);
-    }
+
 }
 
-
-void ASurvivalPlayerController::CacheGameInventoryLayout(UGameInventoryLayout* Layout)
-{
-    UE_LOG(LogTemp, Log, TEXT("Caching GameInventoryLayout"));
-    CachedGameInventoryLayout = Layout;
-}

@@ -25,28 +25,10 @@ void UGameInventoryLayout::NativeConstruct()
         InventoryExitButton->OnClicked().AddUObject(this, &UGameInventoryLayout::OnInventoryExitButtonClicked);
     }
 
-    // Cache this layout in the player controller
-    CacheInPlayerController();
+
 }
 
-void UGameInventoryLayout::CacheInPlayerController()
-{
-    if (!CachedPlayerController)
-    {
-        // Try to get the player controller if we don't have it cached
-        CachedPlayerController = Cast<ASurvivalPlayerController>(GetOwningPlayer());
-    }
 
-    if (CachedPlayerController)
-    {
-        UE_LOG(LogTemp, Log, TEXT("Caching GameInventoryLayout in PlayerController"));
-        CachedPlayerController->CacheGameInventoryLayout(this);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("GameInventoryLayout: Failed to cache - No valid PlayerController"));
-    }
-}
 
 void UGameInventoryLayout::OnInventoryExitButtonClicked()
 {

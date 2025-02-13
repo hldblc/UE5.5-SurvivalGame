@@ -9,7 +9,7 @@
 /**
  * @brief Widget class for managing the main inventory interface
  */
-UCLASS(Abstract)
+UCLASS(BlueprintType, Blueprintable, meta = (DisplayName = "Inventory Widget"))
 class SURVIVALGAME_API UInventoryWidget : public UCommonUserWidget
 {
 	GENERATED_BODY()

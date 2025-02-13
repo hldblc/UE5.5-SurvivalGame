@@ -25,7 +25,6 @@ public:
     UGameInventoryLayout(const FObjectInitializer& ObjectInitializer);
 
     /** Gets the main inventory widget */
-    UFUNCTION(BlueprintCallable, Category = "UI")
     UInventoryWidget* GetInventoryWidget() const { return InventoryWidget; }
 
     /** Cache this layout in the player controller */

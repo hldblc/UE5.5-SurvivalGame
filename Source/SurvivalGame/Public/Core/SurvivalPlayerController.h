@@ -30,11 +30,6 @@ public:
     // Constructor.
     ASurvivalPlayerController();
 
-    // Cache the game inventory layout for later use
-    void CacheGameInventoryLayout(UGameInventoryLayout* Layout);
-    
-    // Get the cached game inventory layout
-    UGameInventoryLayout* GetCachedGameInventoryLayout() const { return CachedGameInventoryLayout; }
 
 protected:
     virtual void BeginPlay() override;
@@ -81,17 +76,16 @@ protected:
     void CloseInventory();
     virtual void CloseInventory_Implementation() override;
 
-    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    UFUNCTION(BlueprintCallable,BlueprintType, Category = "Inventory")
     void InitializeInventoryWidget();
     
     UFUNCTION(BlueprintCallable, Category = "Inventory")
-    UInventorySlot* GetInventoryWidget(E_ContainerType ContainerType, int32 SlotIndex);
-
-    UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Inventory")
-    void UpdateItemSlot(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index);
+    UInventorySlot* GetInventorySlotWidget(E_ContainerType ContainerType, int32 SlotIndex);
     
-    UFUNCTION(BlueprintCallable, Client, Reliable, Category = "Inventory")
+    UFUNCTION(Client, Reliable, Category = "Inventory")
     void Client_UpdateSlot(E_ContainerType Container, FItemStructure ItemInfo, int32 Index);
+    
+    virtual void UpdateItemSlot_Implementation(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index) override;
     
 private:
     /** Helper function to initialize our CommonUI-enhanced input mappings. */

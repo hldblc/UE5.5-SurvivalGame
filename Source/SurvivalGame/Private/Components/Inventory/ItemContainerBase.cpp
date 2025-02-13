@@ -59,7 +59,7 @@ void UItemContainerBase::Server_AddItem_Implementation(const FItemStructure& Ite
 //===========================================UpdateUI====================================================
 
 
-void UItemContainerBase::UpdateUI(int32 Index, const FItemStructure& ItemInfo)
+void UItemContainerBase::UpdateUI(const int32 Index, const FItemStructure& ItemInfo)
 {
     AActor* OwnerActor = GetOwner();
     if (!OwnerActor)
@@ -77,7 +77,7 @@ void UItemContainerBase::UpdateUI(int32 Index, const FItemStructure& ItemInfo)
     
     if (OwnerActor->Implements<UPlayerInterface>())
     {
-        IPlayerInterface::Execute_UpdateItem(OwnerActor,ContainerType, ItemInfo, Index);
+        IPlayerInterface::Execute_UpdateItem(OwnerActor,ContainerType,ItemInfo, Index);
     } 
     
 
