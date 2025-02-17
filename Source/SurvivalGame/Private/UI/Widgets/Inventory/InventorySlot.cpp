@@ -134,18 +134,14 @@ void UInventorySlot::UpdateUIElements() const
         float TotalWeight = ItemAssetInfo->ItemWeight * StoredItemInfo.ItemQuantity;
         FNumberFormattingOptions FormatOptions;
         FormatOptions.MinimumFractionalDigits = 1;
-        FormatOptions.MaximumFractionalDigits = 3;
-        FormatOptions.UseGrouping = true;
-        FormatOptions.MinimumIntegralDigits = 1;
-        FormatOptions.MaximumIntegralDigits = 324;
-        FormatOptions.AlwaysSign = false;
-        FormatOptions.RoundingMode = HalfToEven;
+        FormatOptions.MaximumFractionalDigits = 1;
         FText WeightTextValue = FText::AsNumber(TotalWeight, &FormatOptions);
         ItemWeight->SetText(WeightTextValue);
         ItemWeight->SetVisibility(ESlateVisibility::Visible);
     }
 
-
+    // --- Update ItemIcon ---
+    // --- Update ItemIcon ---
     // --- Update ItemIcon ---
     if (ItemIcon)
     {
