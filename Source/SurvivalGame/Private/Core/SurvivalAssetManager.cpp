@@ -2,6 +2,7 @@
 
 #include "SurvivalAssetManager.h"
 #include "Engine/AssetManager.h"
+#include "PrimaryData/ItemInfo.h"
 
 void USurvivalAssetManager::StartInitialLoading()
 {
@@ -9,14 +10,36 @@ void USurvivalAssetManager::StartInitialLoading()
 	Super::StartInitialLoading();
 
 	UE_LOG(LogTemp, Log, TEXT("USurvivalAssetManager: StartInitialLoading() called"));
-
-	// Grab all items of type "Item"
+    
+	// Make sure primary asset types are properly registered
+	FPrimaryAssetType ItemType("Item");
+    
+	// Scan for primary assets
+	TArray<FString> Paths;
+	Paths.Add("/Game/_MAIN/Data");
+    
+	
+	// Format: (PrimaryAssetType, Paths, BaseClass, bHasBlueprintClasses, bIsEditorOnly, bForceSynchronousScan)
+	ScanPathsForPrimaryAssets(ItemType, Paths, UItemInfo::StaticClass(), true, false, false);
+    
+	
 	TArray<FPrimaryAssetId> ItemAssetIds;
-	GetPrimaryAssetIdList(FPrimaryAssetType("Item"), ItemAssetIds);
+	GetPrimaryAssetIdList(ItemType, ItemAssetIds);
 
-	// If you have items, request them to load asynchronously
+	// If have items, request them to load asynchronously
 	if (ItemAssetIds.Num() > 0)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Found %d 'Item' assets:"), ItemAssetIds.Num());
+		for (int32 i = 0; i < FMath::Min(ItemAssetIds.Num(), 10); i++)
+		{
+			UE_LOG(LogTemp, Log, TEXT("  [%d] %s"), i, *ItemAssetIds[i].ToString());
+		}
+        
+		if (ItemAssetIds.Num() > 10)
+		{
+			UE_LOG(LogTemp, Log, TEXT("  ...and %d more"), ItemAssetIds.Num() - 10);
+		}
+
 		FStreamableDelegate OnLoadCompleteDelegate = FStreamableDelegate::CreateUObject(
 			this, 
 			&USurvivalAssetManager::OnItemsLoaded
@@ -24,20 +47,18 @@ void USurvivalAssetManager::StartInitialLoading()
 
 		// This will queue up an async load of all found item assets
 		LoadPrimaryAssets(ItemAssetIds, TArray<FName>(), OnLoadCompleteDelegate);
-
-		UE_LOG(LogTemp, Log, TEXT("Requested async load for %d 'Item' assets."), ItemAssetIds.Num());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No 'Item' assets found to load."));
+		UE_LOG(LogTemp, Warning, TEXT("No 'Item' assets found to load! Check paths in ScanPathsForPrimaryAssets"));
 	}
 }
 
-void USurvivalAssetManager::OnItemsLoaded()
+void USurvivalAssetManager::OnItemsLoaded() const
 {
 	UE_LOG(LogTemp, Log, TEXT("All 'Item' assets have finished loading!"));
 
-	// At this point, the items are loaded in memory. If you want references:
+	// At this point, the items are loaded in memory. 
 	TArray<FPrimaryAssetId> LoadedItemIds;
 	GetPrimaryAssetIdList(FPrimaryAssetType("Item"), LoadedItemIds);
 
@@ -48,9 +69,6 @@ void USurvivalAssetManager::OnItemsLoaded()
 		if (LoadedObj)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Loaded asset: %s"), *LoadedObj->GetName());
-
-			// If it's a UItemInfo, you can cast and store it somewhere
-			// e.g., keep a TMap<FName, UItemInfo*> if you want quick access
 		}
 	}
 }

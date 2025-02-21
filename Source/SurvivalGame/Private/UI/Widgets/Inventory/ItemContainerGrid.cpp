@@ -69,7 +69,7 @@ void UItemContainerGrid::AddSlotToGrid(int32 Index, UInventorySlot* NewSlot)
     // Optionally, add the new slot to our internal array.
     Slots.Add(NewSlot);
     
-    UE_LOG(LogTemp, Log, TEXT("AddSlotToGrid: Added slot at 0-based index %d (Row: %d, Column: %d)"), LocalSlotIndex, Row, Column);
+    
 }
 
 void UItemContainerGrid::AddSlots(int32 Amount)
@@ -106,7 +106,7 @@ void UItemContainerGrid::AddSlots(int32 Amount)
             // (Our AddSlotToGrid already adds it, so this is optional.)
             // Slots.Add(NewSlot);
             
-            UE_LOG(LogTemp, Log, TEXT("AddSlots: Created and added slot with 1-based index %d"), i);
+            
         }
         else
         {

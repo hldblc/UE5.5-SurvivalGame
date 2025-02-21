@@ -103,19 +103,50 @@ void UInventorySlot::UpdateSlot(FItemStructure ItemInfo)
 
 void UInventorySlot::OnItemAssetLoaded()
 {
-    // Rebuild the soft pointer from our stored info (after async load).
-    TSoftObjectPtr<UPrimaryDataAsset> SoftItemAsset(StoredItemInfo.ItemAsset.ToSoftObjectPath());
-    if (SoftItemAsset.IsValid())
+    if (StoredItemInfo.ItemAsset.IsNull() && !StoredItemInfo.RegistryKey.IsNone())
     {
-        // Cast to UItemInfo.
-        ItemAssetInfo = Cast<UItemInfo>(SoftItemAsset.Get());
-        UE_LOG(LogTemp, Log, TEXT("OnItemAssetLoaded: Async load complete. ItemAssetInfo is now live."));
-        // Now update the UI elements.
-        UpdateUIElements();
+        // Try to resolve the asset using the registry key if the path is still missing
+        UAssetManager* AssetManager = UAssetManager::GetIfInitialized();
+        if (AssetManager)
+        {
+            FPrimaryAssetId ItemId = FPrimaryAssetId(FPrimaryAssetType("Item"), StoredItemInfo.RegistryKey);
+            FSoftObjectPath ItemPath = AssetManager->GetPrimaryAssetPath(ItemId);
+            if (!ItemPath.IsNull())
+            {
+                UE_LOG(LogTemp, Log, TEXT("OnItemAssetLoaded: Fixed missing asset reference for slot %d"), ItemIndex);
+                StoredItemInfo.ItemAsset = TSoftObjectPtr<UItemInfo>(ItemPath);
+            }
+        }
+    }
+
+    // Rebuild the soft pointer from our stored info (after async load)
+    if (!StoredItemInfo.ItemAsset.IsNull())
+    {
+        TSoftObjectPtr<UPrimaryDataAsset> SoftItemAsset(StoredItemInfo.ItemAsset.ToSoftObjectPath());
+        if (SoftItemAsset.IsValid())
+        {
+            // Cast to UItemInfo
+            ItemAssetInfo = Cast<UItemInfo>(SoftItemAsset.Get());
+            if (ItemAssetInfo)
+            {
+                UE_LOG(LogTemp, Log, TEXT("OnItemAssetLoaded: Slot %d loaded item %s successfully"), 
+                    ItemIndex, *ItemAssetInfo->GetName());
+                // Now update the UI elements
+                UpdateUIElements();
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("OnItemAssetLoaded: Failed to cast to UItemInfo for slot %d"), ItemIndex);
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("OnItemAssetLoaded: Asset still not valid after load attempt for slot %d"), ItemIndex);
+        }
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnItemAssetLoaded: Uh oh—asset load failed. Check your settings, champ."));
+        UE_LOG(LogTemp, Error, TEXT("OnItemAssetLoaded: No asset path available for slot %d"), ItemIndex);
     }
 }
 
@@ -140,8 +171,6 @@ void UInventorySlot::UpdateUIElements() const
         ItemWeight->SetVisibility(ESlateVisibility::Visible);
     }
 
-    // --- Update ItemIcon ---
-    // --- Update ItemIcon ---
     // --- Update ItemIcon ---
     if (ItemIcon)
     {

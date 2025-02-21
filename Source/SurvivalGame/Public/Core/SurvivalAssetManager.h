@@ -20,5 +20,5 @@ public:
 
 private:
 	/** Callback after async load finishes. */
-	void OnItemsLoaded();
+	void OnItemsLoaded() const;
 };

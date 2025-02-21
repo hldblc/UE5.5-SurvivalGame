@@ -31,6 +31,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Container|Config")
     int32 MaxSlots;
 
+    UFUNCTION(BlueprintCallable, Category = "Container|Debug")
+    void DebugContainerState();
+
     /** Container state */
     UPROPERTY(ReplicatedUsing = OnRep_Items)
     TArray<FItemStructure> Items;

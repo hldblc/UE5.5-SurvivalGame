@@ -17,6 +17,7 @@ ASurvivalPlayerController::ASurvivalPlayerController()
     RootLayout = nullptr;
 }
 
+
 //==================================================BeginPlay==================================================
 void ASurvivalPlayerController::BeginPlay()
 {

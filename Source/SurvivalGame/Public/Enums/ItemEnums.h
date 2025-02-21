@@ -11,20 +11,6 @@
 UENUM(BlueprintType)
 enum class E_ItemType : uint8
 {
-    None        UMETA(DisplayName = "None"),
-    Resource    UMETA(DisplayName = "Resource"),
-    Equipment   UMETA(DisplayName = "Equipment"),
-    Consumable  UMETA(DisplayName = "Consumable"),
-    Quest       UMETA(DisplayName = "Quest"),
-    Miscellaneous UMETA(DisplayName = "Miscellaneous")
-};
-
-/**
- * @brief Specific item categories within types
- */
-UENUM(BlueprintType)
-enum class E_ItemCategory : uint8
-{
     None            UMETA(DisplayName = "None"),
     Weapon          UMETA(DisplayName = "Weapon"),
     Armor           UMETA(DisplayName = "Armor"),
@@ -34,7 +20,23 @@ enum class E_ItemCategory : uint8
     Potion          UMETA(DisplayName = "Potion"),
     QuestItem       UMETA(DisplayName = "Quest Item"),
     Valuable        UMETA(DisplayName = "Valuable"),
-    Miscellaneous   UMETA(DisplayName = "Miscellaneous")
+    Miscellaneous   UMETA(DisplayName = "Miscellaneous")    
+
+};
+
+/**
+ * @brief Specific item categories within types
+ */
+UENUM(BlueprintType)
+enum class E_ItemCategory : uint8
+{
+    None        UMETA(DisplayName = "None"),
+    Resource    UMETA(DisplayName = "Resource"),
+    Equipment   UMETA(DisplayName = "Equipable"),
+    Consumable  UMETA(DisplayName = "Consumable"),
+    Buildable   UMETA(DisplayName = "Buildable"),
+    Quest       UMETA(DisplayName = "Quest"),
+    Miscellaneous UMETA(DisplayName = "Miscellaneous")
 };
 
 //////////////////////////////////////////////////
@@ -52,21 +54,6 @@ enum class E_ArmorType : uint8
     Shield            UMETA(DisplayName = "Shield"),
     Invalid           UMETA(HIDDEN)
     
-};
-
-/**
- * @brief Item states affecting functionality and appearance
- */
-UENUM(BlueprintType)
-enum class E_ItemState : uint8
-{
-    None        UMETA(DisplayName = "None"),
-    Normal      UMETA(DisplayName = "Normal"),
-    Damaged     UMETA(DisplayName = "Damaged"),
-    Broken      UMETA(DisplayName = "Broken"),
-    Raw         UMETA(DisplayName = "Raw"),
-    Processed   UMETA(DisplayName = "Processed"),
-    Spoiled     UMETA(DisplayName = "Spoiled")
 };
 
 /**
@@ -197,4 +184,61 @@ enum class E_SortMethod : uint8
     Rarity      UMETA(DisplayName = "Rarity"),
     Value       UMETA(DisplayName = "Value"),
     Weight      UMETA(DisplayName = "Weight")
+};
+
+/**
+ * @brief Resource state affecting gathering and quality
+ */
+UENUM(BlueprintType)
+enum class E_ResourceState : uint8
+{
+    None            UMETA(DisplayName = "None"),
+    Bountiful       UMETA(DisplayName = "Bountiful"),
+    Standard        UMETA(DisplayName = "Standard"),
+    Scarce          UMETA(DisplayName = "Scarce"),
+    Exhausted       UMETA(DisplayName = "Exhausted"),
+    Cursed          UMETA(DisplayName = "Cursed")
+};
+
+/**
+ * @brief Equipable state affecting functionality and durability
+ */
+UENUM(BlueprintType)
+enum class E_EquipableState : uint8
+{
+    None            UMETA(DisplayName = "None"),
+    Normal          UMETA(DisplayName = "Normal"),
+    Damaged         UMETA(DisplayName = "Damaged"),
+    Broken          UMETA(DisplayName = "Broken"),
+    Cursed          UMETA(DisplayName = "Cursed")
+};
+
+/**
+ * @brief Consumable state affecting effectiveness and safety
+ */
+UENUM(BlueprintType)
+enum class E_ConsumableState : uint8
+{
+    None            UMETA(DisplayName = "None"),
+    Fresh           UMETA(DisplayName = "Fresh"),
+    Normal          UMETA(DisplayName = "Normal"),
+    Raw             UMETA(DisplayName = "Raw"),
+    Processed       UMETA(DisplayName = "Processed"),
+    Spoiled         UMETA(DisplayName = "Spoiled"),
+    Poisoned        UMETA(DisplayName = "Poisoned")
+};
+
+/**
+ * @brief Buildable state for structures and settlements
+ */
+UENUM(BlueprintType)
+enum class E_BuildableState : uint8
+{
+    None               UMETA(DisplayName = "None"),
+    Planned            UMETA(DisplayName = "Planned"),
+    UnderConstruction  UMETA(DisplayName = "Under Construction"),
+    Completed          UMETA(DisplayName = "Completed"),
+    Damaged            UMETA(DisplayName = "Damaged"),
+    Destroyed          UMETA(DisplayName = "Destroyed"),
+    Ruined             UMETA(DisplayName = "Ruined")
 };

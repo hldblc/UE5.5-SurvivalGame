@@ -47,9 +47,12 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core")
     E_ItemCategory ItemCategory;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core")
+    E_ItemType ItemType;
+
     /** Additional Properties */
 
-    // Damage: Only visible when the item is damageable (for example, when the category is Weapon).
+    // Damage: Only visible when the item is damageable
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats", meta = (EditCondition = "bShowDamage", EditConditionHides))
     int32 ItemDamage;
 
@@ -69,7 +72,7 @@ public:
     TSoftClassPtr<AItemMaster> ItemClassRef;
 
     // Armor type is shown only when the item category is Armor.
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats", meta = (EditCondition = "bShowArmorType", EditConditionHides))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Type Specific", meta = (EditCondition = "bShowArmorType", EditConditionHides))
     E_ArmorType ArmorType;
 
     // Ammo usage flag.
@@ -83,14 +86,50 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats", meta = (EditCondition = "bShowAmmo", EditConditionHides))
     int32 MaxAmmo;
 
+    // Base item health regardless of state
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats")
+    int32 ItemBaseHP;
+
+    // Current HP will be calculated at runtime based on state
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats")
     int32 ItemCurHP;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats")
-    int32 ItemMaxHP;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Stats")
     float ItemWeight;
+
+    /** Type Specific Properties */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Type Specific", 
+              meta = (EditCondition = "bShowWeaponType", EditConditionHides))
+    E_WeaponType WeaponType;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Type Specific", 
+              meta = (EditCondition = "bShowToolType", EditConditionHides))
+    E_ToolType ToolType;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Type Specific", 
+              meta = (EditCondition = "bShowResourceType", EditConditionHides))
+    E_ResourceType ResourceType;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Type Specific", 
+              meta = (EditCondition = "bShowEquipmentSlot", EditConditionHides))
+    E_EquipmentSlot EquipmentSlot;
+
+    /** Item State Properties */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|State", meta = (EditCondition = "bShowEquipableState", EditConditionHides))
+    E_EquipableState EquipableState;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|State", meta = (EditCondition = "bShowResourceState", EditConditionHides))
+    E_ResourceState ResourceState;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|State", meta = (EditCondition = "bShowConsumableState", EditConditionHides))
+    E_ConsumableState ConsumableState;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|State", meta = (EditCondition = "bShowBuildableState", EditConditionHides))
+    E_BuildableState BuildableState;
+
+    /** Returns the maximum HP based on item category and state */
+    UFUNCTION(BlueprintPure, Category = "Item|Stats")
+    int32 GetMaxHP() const;
 
 #if WITH_EDITORONLY_DATA
     // Editor-only helper booleans for conditional display.
@@ -103,6 +142,30 @@ public:
 
     UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
     bool bShowDamage;
+    
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowWeaponType;
+
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowToolType;
+
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowResourceType;
+
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowEquipmentSlot;
+    
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowEquipableState;
+    
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowResourceState;
+    
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowConsumableState;
+    
+    UPROPERTY(Transient, VisibleAnywhere, Category = "Item|Conditional")
+    bool bShowBuildableState;
 #endif
 
 #if WITH_EDITOR
