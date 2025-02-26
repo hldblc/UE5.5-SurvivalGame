@@ -34,6 +34,8 @@ protected:
 	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 
+	UFUNCTION(blueprintImplementableEvent, Category = "Inventory|Slot")
+	void OnMouse
 	
 	// Called when the async asset load completes.
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Slot")

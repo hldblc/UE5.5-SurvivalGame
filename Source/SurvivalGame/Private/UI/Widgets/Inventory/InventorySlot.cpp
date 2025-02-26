@@ -205,9 +205,7 @@ void UInventorySlot::UpdateUIElements() const
         }
     }
     
-    // --- Update ItemQuantity Based on Item Category (Resource Only) ---
-    // We are currently only implementing the Resource branch.
-    // (Assuming that UItemInfo has an "ItemCategory" property and that E_ItemCategory::Resource exists.)
+    // ================================= Resource =================================
     if (ItemAssetInfo->ItemCategory == E_ItemCategory::Resource)
     {
         // Update the quantity text (formatted as "x{Quantity}")
@@ -242,5 +240,206 @@ void UInventorySlot::UpdateUIElements() const
     if (ItemHPBar)
     {
         ItemHPBar->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    // ================================= Equipment =================================
+    else if (ItemAssetInfo->ItemCategory == E_ItemCategory::Equipment)
+    {
+        // Equipment items might have HP/durability and possibly ammo
+        
+        // Hide quantity for equipment
+        if (ItemQuantity)
+        {
+            ItemQuantity->SetVisibility(ESlateVisibility::Hidden);
+        }
+        
+        // Show durability bar if HP values are valid
+        if (ItemHPBar)
+        {
+            if (StoredItemInfo.MaxHP > 0.0f)
+            {
+                float HPPercent = FMath::Clamp(StoredItemInfo.CurrentHP / StoredItemInfo.MaxHP, 0.0f, 1.0f);
+                ItemHPBar->SetPercent(HPPercent);
+                
+                // Set color based on durability percentage
+                FLinearColor BarColor;
+                if (HPPercent > 0.66f)
+                {
+                    // Green for good condition (>66%)
+                    BarColor = FLinearColor(0.0f, 0.75f, 0.0f);
+                }
+                else if (HPPercent > 0.33f)
+                {
+                    // Yellow for moderate condition (33-66%)
+                    BarColor = FLinearColor(0.75f, 0.75f, 0.0f);
+                }
+                else
+                {
+                    // Red for poor condition (<33%)
+                    BarColor = FLinearColor(0.75f, 0.0f, 0.0f);
+                }
+                
+                ItemHPBar->SetFillColorAndOpacity(BarColor);
+                ItemHPBar->SetVisibility(ESlateVisibility::Visible);
+            }
+            else
+            {
+                // No HP tracking for this equipment
+                ItemHPBar->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+        
+        // Show ammo text for weapons that use ammo
+        if (BottomTextAmmo)
+        {
+            if (ItemAssetInfo->bUseAmmo && StoredItemInfo.MaxAmmo > 0)
+            {
+                FText AmmoText = FText::Format(FText::FromString(TEXT("{0}/{1}")), 
+                    FText::AsNumber(StoredItemInfo.CurrentAmmo), 
+                    FText::AsNumber(StoredItemInfo.MaxAmmo));
+                BottomTextAmmo->SetText(AmmoText);
+                BottomTextAmmo->SetVisibility(ESlateVisibility::Visible);
+            }
+            else
+            {
+                BottomTextAmmo->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+    }
+    
+    // ================================= Consumable =================================
+    else if (ItemAssetInfo->ItemCategory == E_ItemCategory::Consumable)
+    {
+        // For Consumable items, show quantity like resources
+        if (ItemQuantity)
+        {
+            int32 Quantity = StoredItemInfo.ItemQuantity;
+            FText QuantityTextValue = FText::Format(FText::FromString(TEXT("x{0}")),
+            FText::AsNumber(Quantity));
+            ItemQuantity->SetText(QuantityTextValue);
+            ItemQuantity->SetVisibility(ESlateVisibility::Visible);
+        }
+        
+        // Hide equipment-specific elements
+        if (BottomTextAmmo)
+        {
+            BottomTextAmmo->SetVisibility(ESlateVisibility::Hidden);
+        }
+        if (ItemHPBar)
+        {
+            ItemHPBar->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+    else
+    {
+        // For all other item types (Quest, Miscellaneous, etc.)
+        
+        // Show quantity if stackable
+        if (ItemQuantity)
+        {
+            if (ItemAssetInfo->bStackable && StoredItemInfo.ItemQuantity > 1)
+            {
+                int32 Quantity = StoredItemInfo.ItemQuantity;
+                FText QuantityTextValue = FText::Format(FText::FromString(TEXT("x{0}")), FText::AsNumber(Quantity));
+                ItemQuantity->SetText(QuantityTextValue);
+                ItemQuantity->SetVisibility(ESlateVisibility::Visible);
+            }
+            else
+            {
+                ItemQuantity->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+        
+        // Hide equipment-specific elements
+        if (BottomTextAmmo)
+        {
+            BottomTextAmmo->SetVisibility(ESlateVisibility::Hidden);
+        }
+        if (ItemHPBar)
+        {
+            ItemHPBar->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+    
+    // --- Update TopText ---
+    // For all items, hide the top text when an item is present
+    if (TopText)
+    {
+        TopText->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    // ================================= Wearable =================================
+    else if (ItemAssetInfo->ItemCategory == E_ItemCategory::Wearable)
+    {
+        if (ItemQuantity)
+        {
+            ItemQuantity->SetVisibility(ESlateVisibility::Hidden);
+        }
+
+
+        if (ItemHPBar)
+        {
+            if (StoredItemInfo.MaxHP > 0.0f)
+            {
+                float HPPercent = FMath::Clamp(StoredItemInfo.CurrentHP / StoredItemInfo.MaxHP, 0.0f, 1.0f);
+                ItemHPBar->SetPercent(HPPercent);
+            
+                // Color coding based on armor condition
+                FLinearColor BarColor;
+                if (HPPercent > 0.66f)
+                {
+                    // Green for good condition (>66%)
+                    BarColor = FLinearColor(0.0f, 0.75f, 0.0f);
+                }
+                else if (HPPercent > 0.33f)
+                {
+                    // Yellow for moderate condition (33-66%)
+                    BarColor = FLinearColor(0.75f, 0.75f, 0.0f);
+                }
+                else
+                {
+                    // Red for poor condition (<33%)
+                    BarColor = FLinearColor(0.75f, 0.0f, 0.0f);
+                }
+            
+                ItemHPBar->SetFillColorAndOpacity(BarColor);
+                ItemHPBar->SetVisibility(ESlateVisibility::Visible);
+            }
+            else
+            {
+                // No HP tracking for this wearable
+                ItemHPBar->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+    
+        // Wearable items typically don't have ammo
+        if (BottomTextAmmo)
+        {
+            BottomTextAmmo->SetVisibility(ESlateVisibility::Hidden);
+        }
+
+    }
+
+    // ================================= Buildable =================================
+    else if (ItemAssetInfo->ItemCategory == E_ItemCategory::Buildable)
+    {
+        // For Buildable items, show quantity just like Resources
+        if (ItemQuantity)
+        {
+            int32 Quantity = StoredItemInfo.ItemQuantity;
+            FText QuantityTextValue = FText::Format(FText::FromString(TEXT("x{0}")), FText::AsNumber(Quantity));
+            ItemQuantity->SetText(QuantityTextValue);
+            ItemQuantity->SetVisibility(ESlateVisibility::Visible);
+        }
+    
+        // Hide equipment-specific elements
+        if (BottomTextAmmo)
+        {
+            BottomTextAmmo->SetVisibility(ESlateVisibility::Hidden);
+        }
+        if (ItemHPBar)
+        {
+            ItemHPBar->SetVisibility(ESlateVisibility::Hidden);
+        }
     }
 }
