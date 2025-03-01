@@ -80,7 +80,12 @@ public class SurvivalGame : ModuleRules
                 "UnrealEd",
                 "EditorFramework",
                 "EditorStyle",
-                "EditorSubsystem"
+                "EditorSubsystem",
+                "Blutility",           
+                "UMGEditor",           
+                "AssetTools",          
+                "ContentBrowser",      
+                "EditorScriptingUtilities"
             });
         }
 

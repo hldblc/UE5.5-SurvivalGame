@@ -31,6 +31,14 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Item")
     FItemStructure CreateItemInstance(int32 Quantity = 1) const;
 
+	// Link to Data Table row
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Data Table")
+	FName DataTableRowName;
+
+	// Function to load data from table
+	UFUNCTION(BlueprintCallable, Category = "Initialization")
+	bool LoadFromDataTable(const UDataTable* DataTable);
+
     /** Core Properties */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core")
     FName RegistryKey;
