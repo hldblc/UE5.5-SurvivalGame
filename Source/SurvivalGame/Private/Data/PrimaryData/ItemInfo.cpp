@@ -1,6 +1,4 @@
 #include "Data/PrimaryData/ItemInfo.h"
-
-#include "DataTables/ItemDataTableRow.h"
 #include "Engine/Texture2D.h"
 
 UItemInfo::UItemInfo()
@@ -108,36 +106,6 @@ int32 UItemInfo::GetMaxHP() const
             return ItemBaseHP;
     }
 }
-
-bool UItemInfo::LoadFromDataTable(const UDataTable* DataTable)
-{
-    if (!DataTable || DataTableRowName.IsNone())
-    {
-        return false;
-    }
-
-    FItemDataTableRow* Row = DataTable->FindRow<FItemDataTableRow>(DataTableRowName, TEXT(""));
-    if (!Row)
-    {
-        return false;
-    }
-
-    // Copy data from table row to this asset
-    RegistryKey = Row->RegistryKey;
-    ItemCategory = Row->ItemCategory;
-    ItemType = Row->ItemType;
-    ItemName = Row->ItemName;
-    ItemDescription = Row->ItemDescription;
-    ItemWeight = Row->ItemWeight;
-    ItemBaseHP = Row->ItemBaseHP;
-    ItemDamage = Row->ItemDamage;
-    bStackable = Row->bStackable;
-    StackSize = Row->StackSize;
-    ItemIcon = Row->ItemIcon;
-
-    return true;
-}
-
 
 FItemStructure UItemInfo::CreateItemInstance(int32 Quantity) const
 {

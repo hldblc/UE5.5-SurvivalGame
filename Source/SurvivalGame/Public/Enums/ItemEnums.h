@@ -33,7 +33,6 @@ enum class E_ItemCategory : uint8
     None        UMETA(DisplayName = "None"),
     Resource    UMETA(DisplayName = "Resource"),
     Equipment   UMETA(DisplayName = "Equipable"),
-    Wearable    UMETA(DisplayName = "Wearable"),
     Consumable  UMETA(DisplayName = "Consumable"),
     Buildable   UMETA(DisplayName = "Buildable"),
     Quest       UMETA(DisplayName = "Quest"),
