@@ -7,13 +7,10 @@
 #include "Runtime/UMG/Public/Components/TextBlock.h"
 #include "CommonUI/Public/CommonBorder.h"
 #include "Components/ProgressBar.h"
-#include "Input/Events.h"
-#include "UI/Widgets/Inventory/DraggedItem.h" // Include DraggedItem.h
 #include "InventorySlot.generated.h"
 
 // Forward-declare your item asset type (UItemInfo).
 class UItemInfo;
-class UItemDrag;
 
 UCLASS(Blueprintable, meta = (DisplayName = "Inventory Slot"))
 class SURVIVALGAME_API UInventorySlot : public UCommonButtonBase
@@ -31,20 +28,14 @@ public:
 	int32 ItemIndex;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory|Slot")
-	E_ContainerType ContainerType; 
+	E_ContainerType ContainerType; // Now recognized, because we've included the proper header.
 
 protected:
 	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 
-	// Mouse interaction override for drag and drop functionality
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
-	virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& Operation) override; 
-	
-	// Widget class to use for drag visual
-	UPROPERTY(EditDefaultsOnly, Category = "Drag and Drop")
-	TSubclassOf<UDraggedItem> DraggedItemClass;
+	UFUNCTION(blueprintImplementableEvent, Category = "Inventory|Slot")
+	void OnMouse
 	
 	// Called when the async asset load completes.
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Slot")

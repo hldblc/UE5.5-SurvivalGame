@@ -18,23 +18,6 @@ void UItemContainerGrid::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if (SlotsPerRow <= 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SlotsPerRow is zero or negative, using default value of 6"));
-        SlotsPerRow = 6;
-    }
-    
-    if (TotalSlots <= 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("TotalSlots is zero or negative, using default value of 60"));
-        TotalSlots = 60;
-    }
-    
-    // Rest of your existing code
-    UE_LOG(LogTemp, Log, TEXT("ItemContainerGrid::NativeConstruct - Grid: %s, SlotClass: %s"), 
-        Grid ? TEXT("Valid") : TEXT("Invalid"),
-        InventorySlotClass ? TEXT("Valid") : TEXT("Invalid"));
-
     // Add debug logging
     UE_LOG(LogTemp, Log, TEXT("ItemContainerGrid::NativeConstruct - Grid: %s, SlotClass: %s"), 
         Grid ? TEXT("Valid") : TEXT("Invalid"),
@@ -52,12 +35,6 @@ void UItemContainerGrid::NativeConstruct()
 
 void UItemContainerGrid::AddSlotToGrid(int32 Index, UInventorySlot* NewSlot)
 {
-    if (SlotsPerRow <= 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("AddSlotToGrid: SlotsPerRow is zero or negative, using default value of 6"));
-        SlotsPerRow = 6;
-    }
-    
     if (!Grid)
     {
         UE_LOG(LogTemp, Warning, TEXT("AddSlotToGrid: Grid panel is not bound!"));

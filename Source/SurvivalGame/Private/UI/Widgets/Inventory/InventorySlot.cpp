@@ -1,14 +1,11 @@
 #include "UI/Widgets/Inventory/InventorySlot.h"
-#include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Framework/Application/SlateApplication.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"
 #include "Data/PrimaryData/ItemInfo.h"  
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Internationalization/Text.h"
-#include "UI/Widgets/Inventory/DraggedItem.h"
-#include "UI/Widgets/Inventory/Operations/ItemDrag.h"
+
 
 
 void UInventorySlot::NativePreConstruct()
@@ -52,99 +49,6 @@ void UInventorySlot::NativeConstruct()
         TopText->SetVisibility(ESlateVisibility::Visible);
         TopText->SetText(FText::FromString(TEXT(""))); // Empty slot text
     }
-}
-
-FReply UInventorySlot::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
-{
-    if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
-    {
-        // 2) If so, replicate the Blueprint’s "SetDragInput Pressed" path by returning Handled.
-        return FReply::Handled();
-    }
-    return Super::NativeOnMouseButtonDown(MyGeometry, MouseEvent);
-}
-
-FReply UInventorySlot::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-    // Check if the left mouse button is pressed
-    if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
-    {
-        // Detect drag if left mouse button is pressed
-        FEventReply Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
-        return Reply.NativeReply;
-    }
-    else
-    {
-        // If not left mouse button, mark as unhandled
-        return FReply::Unhandled();
-    }
-}
-
-void UInventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
-{
-    // Only proceed if we have an item in the slot
-    if (!bHasItemInSlot || !ItemAssetInfo)
-    {
-        return;
-    }
-
-    // Create the DraggedItem widget
-    UDraggedItem* DragVisual = CreateWidget<UDraggedItem>(GetOwningPlayer(), DraggedItemClass);
-    if (!DragVisual)
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to create DraggedItem widget"));
-        return;
-    }
-
-    // Set properties on the DraggedItem widget (mimicking the blueprint connections)
-    
-    // Set ImageIcon from ItemAssetInfo->ItemIcon
-    DragVisual->ImageIcon = ItemAssetInfo->ItemIcon.LoadSynchronous();
-    
-    // Set TextTop from ItemAssetInfo->ItemDamage converted to text
-    DragVisual->TextTop = FText::AsNumber(ItemAssetInfo->ItemDamage);
-    
-    // Set ItemCategory from ItemAssetInfo->ItemCategory
-    DragVisual->ItemCategory = ItemAssetInfo->ItemCategory;
-    
-    // Set Quantity from StoredItemInfo.ItemQuantity converted to text
-    DragVisual->Quantity = FText::AsNumber(StoredItemInfo.ItemQuantity);
-    
-    // Set UseAmmo from ItemAssetInfo->bUseAmmo
-    DragVisual->bUseAmmo = ItemAssetInfo->bUseAmmo;
-    
-    // Set CurrentAmmo and MaxAmmo from StoredItemInfo
-    DragVisual->CurrentAmmo = StoredItemInfo.CurrentAmmo;
-    DragVisual->MaxAmmo = StoredItemInfo.MaxAmmo;
-    
-    // Set CurrentHP and MaxHP from StoredItemInfo
-    DragVisual->CurrentHP = StoredItemInfo.CurrentHP;
-    DragVisual->MaxHP = StoredItemInfo.MaxHP;
-    
-    // Set Weight from StoredItemInfo.ItemQuantity * ItemAssetInfo->ItemWeight converted to text
-    float TotalWeight = StoredItemInfo.ItemQuantity * ItemAssetInfo->ItemWeight;
-    DragVisual->Weight = FText::AsNumber(TotalWeight);
-    
-    // Create the ItemDrag operation
-    UItemDrag* DragOperation = NewObject<UItemDrag>();
-    if (!DragOperation)
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to create ItemDrag operation"));
-        return;
-    }
-    
-    // Set up the drag operation properties
-    DragOperation->DefaultDragVisual = DragVisual;
-    DragOperation->SlotIndex = ItemIndex;
-    DragOperation->FromContainer = ContainerType;
-    DragOperation->ItemCategory = ItemAssetInfo->ItemCategory;
-    DragOperation->ArmorType = ItemAssetInfo->ArmorType;
-    
-    // Set the pivot to prevent the widget from jumping when dragged
-    DragOperation->Pivot = EDragPivot::MouseDown;
-    
-    // Return the drag operation
-    OutOperation = DragOperation;
 }
 
 
@@ -246,37 +150,6 @@ void UInventorySlot::OnItemAssetLoaded()
     }
 }
 
-/**
- * Updates the UI elements of the inventory slot based on the item data, including visibility and data formatting.
- *
- * This method conditions the UI components such as icons, quantity labels, and category-specific details
- * (e.g., durability for equipment, stack size for resources, etc.) based on the current inventory state.
- *
- * Functional Details:
- * - Validates whether the associated item data (ItemAssetInfo) is loaded before proceeding.
- * - Adjusts visibility and sets formatted content for various UI components as follows:
- *   - **ItemWeight**: Displays the total weight (quantity * weight per item) if relevant.
- *   - **ItemIcon**: Loads and renders the item icon associated with the item data if available.
- *   - **ItemQuantity**: Updates the quantity display based on the item category and stackability.
- *   - **ItemHPBar**: Displays the durability bar for equipment and wearables with condition tracking.
- *   - **BottomTextAmmo**: Shows remaining ammunition if applicable to the item's type (e.g., weapons).
- *   - **TopText**: Hides or adjusts the top text, ensuring it's not displayed by default.
- *
- * Specific Category Adjustments:
- * - **Resource Items**: Shows quantity formatted as "xN" and hides other non-relevant components.
- * - **Equipment**: Displays durability (HP percent) and conditionally loads ammo if applicable.
- * - **Consumable Items**: Displays quantity like resources but hides any equipment-specific elements.
- * - **Wearables**: Similar to equipment, updates durability bars but does not display ammo or quantity.
- * - **Miscellaneous/Quest Items**: Evaluates stackability to determine whether to show the quantity display.
- *
- * Logging:
- * - Logs errors and success messages (e.g., loading icons or detecting null item data) for debugging purposes.
- *
- * Note:
- * - This method is written for an Unreal Engine environment and uses Slate UI components and structures.
- * - Elements like `ItemQuantity`, `ItemWeight`, `ItemIcon`, `ItemHPBar` are expected to be UMG widgets
- *   (or objects that support similar APIs for setting visibility, properties, etc.).
- */
 void UInventorySlot::UpdateUIElements() const
 {
     // If our asset still isn't loaded, bail out.
