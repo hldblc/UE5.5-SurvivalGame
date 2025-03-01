@@ -47,7 +47,7 @@ public:
     }
 
     /** Number of inventory slots per row. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Container")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Container", meta = (ClampMin = "1"))
     int32 SlotsPerRow;
 
     /** Total number of inventory slots in the grid. */
