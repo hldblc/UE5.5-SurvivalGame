@@ -6,7 +6,10 @@
 #include "Data/PrimaryData/ItemInfo.h"  
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
+#include "UObject/WeakObjectPtrTemplates.h"
+#include "Delegates/DelegateSignatureImpl.inl"
 #include "Internationalization/Text.h"
+#include "Library/ItemAssetCache.h"
 #include "UI/Widgets/Inventory/DraggedItem.h"
 #include "UI/Widgets/Inventory/Operations/ItemDrag.h"
 
@@ -82,12 +85,12 @@ FReply UInventorySlot::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometr
 
 void UInventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
-    // Only proceed if we have an item in the slot
+    // Only proceed if an item exists in the slot
     if (!bHasItemInSlot || !ItemAssetInfo)
     {
         return;
     }
-
+    
     // Create the DraggedItem widget
     UDraggedItem* DragVisual = CreateWidget<UDraggedItem>(GetOwningPlayer(), DraggedItemClass);
     if (!DragVisual)
@@ -95,37 +98,44 @@ void UInventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPo
         UE_LOG(LogTemp, Error, TEXT("Failed to create DraggedItem widget"));
         return;
     }
-
-    // Set properties on the DraggedItem widget (mimicking the blueprint connections)
     
-    // Set ImageIcon from ItemAssetInfo->ItemIcon
-    DragVisual->ImageIcon = ItemAssetInfo->ItemIcon.LoadSynchronous();
+    // Get the soft object path for the icon texture
+    FSoftObjectPath IconPath = ItemAssetInfo->ItemIcon.ToSoftObjectPath();
     
-    // Set TextTop from ItemAssetInfo->ItemDamage converted to text
+    // Try to get the cached texture first
+    UTexture2D* CachedIcon = UItemAssetCache::GetCachedItemIcon(IconPath);
+    if (CachedIcon)
+    {
+        DragVisual->ImageIcon = CachedIcon;
+        // Immediately update the visuals since the icon is available
+        DragVisual->UpdateVisuals();
+    }
+    else
+    {
+        // Otherwise, request the texture asynchronously
+        UItemAssetCache::RequestItemIconAsync(IconPath, FOnTextureLoaded::CreateLambda([DragVisual](UTexture2D* LoadedIcon)
+        {
+            if (LoadedIcon && DragVisual)
+            {
+                DragVisual->ImageIcon = LoadedIcon;
+                DragVisual->UpdateVisuals();
+            }
+        }));
+    }
+    
+    // Set additional properties on the DragVisual
     DragVisual->TextTop = FText::AsNumber(ItemAssetInfo->ItemDamage);
-    
-    // Set ItemCategory from ItemAssetInfo->ItemCategory
     DragVisual->ItemCategory = ItemAssetInfo->ItemCategory;
-    
-    // Set Quantity from StoredItemInfo.ItemQuantity converted to text
     DragVisual->Quantity = FText::AsNumber(StoredItemInfo.ItemQuantity);
-    
-    // Set UseAmmo from ItemAssetInfo->bUseAmmo
     DragVisual->bUseAmmo = ItemAssetInfo->bUseAmmo;
-    
-    // Set CurrentAmmo and MaxAmmo from StoredItemInfo
     DragVisual->CurrentAmmo = StoredItemInfo.CurrentAmmo;
     DragVisual->MaxAmmo = StoredItemInfo.MaxAmmo;
-    
-    // Set CurrentHP and MaxHP from StoredItemInfo
     DragVisual->CurrentHP = StoredItemInfo.CurrentHP;
     DragVisual->MaxHP = StoredItemInfo.MaxHP;
-    
-    // Set Weight from StoredItemInfo.ItemQuantity * ItemAssetInfo->ItemWeight converted to text
     float TotalWeight = StoredItemInfo.ItemQuantity * ItemAssetInfo->ItemWeight;
     DragVisual->Weight = FText::AsNumber(TotalWeight);
     
-    // Create the ItemDrag operation
+    // Create the drag operation and assign the drag visual
     UItemDrag* DragOperation = NewObject<UItemDrag>();
     if (!DragOperation)
     {
@@ -133,19 +143,16 @@ void UInventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPo
         return;
     }
     
-    // Set up the drag operation properties
     DragOperation->DefaultDragVisual = DragVisual;
     DragOperation->SlotIndex = ItemIndex;
     DragOperation->FromContainer = ContainerType;
     DragOperation->ItemCategory = ItemAssetInfo->ItemCategory;
     DragOperation->ArmorType = ItemAssetInfo->ArmorType;
-    
-    // Set the pivot to prevent the widget from jumping when dragged
     DragOperation->Pivot = EDragPivot::MouseDown;
     
-    // Return the drag operation
     OutOperation = DragOperation;
 }
+
 
 
 UInventorySlot::UInventorySlot()

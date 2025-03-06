@@ -1,8 +1,7 @@
 #include "UI/Widgets/GameInventoryLayout.h"
-#include "UI/Widgets/InventoryWidget.h"
-#include "Components/WidgetSwitcher.h"
 #include "CommonButtonBase.h"
 #include "SurvivalPlayerController.h"
+#include "Interfaces/ControllerInterface.h"
 
 UGameInventoryLayout::UGameInventoryLayout(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -16,40 +15,37 @@ void UGameInventoryLayout::NativeConstruct()
 
     UE_LOG(LogTemp, Log, TEXT("GameInventoryLayout::NativeConstruct"));
 
-    // Cache the player controller reference
-    CachedPlayerController = Cast<ASurvivalPlayerController>(GetOwningPlayer());
+    // Cache the owning player controller for later use
+    CachedPlayerController = Cast<APlayerController>(GetOwningPlayer());
 
-    // If the InventoryExitButton is valid, bind our click event
+    // Bind the exit button's OnClicked event
     if (InventoryExitButton)
     {
         InventoryExitButton->OnClicked().AddUObject(this, &UGameInventoryLayout::OnInventoryExitButtonClicked);
     }
-
-
 }
-
-
 
 void UGameInventoryLayout::OnInventoryExitButtonClicked()
 {
-    // First try to use cached controller
-    ASurvivalPlayerController* PC = CachedPlayerController;
-    
-    // If cached controller is invalid, try to get it again
-    if (!PC)
-    {
-        PC = Cast<ASurvivalPlayerController>(GetOwningPlayer());
-    }
+    // In Blueprint, we used to call "DeactivateWidget()" on the exit button.
+    // That triggers NativeOnDeactivated() below.
+    DeactivateWidget();
+}
 
-    if (PC)
+void UGameInventoryLayout::NativeOnDeactivated()
+{
+    Super::NativeOnDeactivated();
+
+    // In Blueprint, "Event On Deactivated" -> "IsValid?" -> "Close Inventory".
+    // We do the same here via C++:
+    if (CachedPlayerController)
     {
-        IControllerInterface::Execute_CloseInventory(PC);
+        // Because SurvivalPlayerController implements IControllerInterface, 
+        // we can call CloseInventory via Execute_CloseInventory().
+        IControllerInterface::Execute_CloseInventory(CachedPlayerController);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnInventoryExitButtonClicked: No valid PlayerController"));
+        UE_LOG(LogTemp, Warning, TEXT("NativeOnDeactivated: No valid PlayerController to close inventory."));
     }
-
-    // Deactivate the widget
-    DeactivateWidget();
 }

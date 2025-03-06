@@ -17,20 +17,64 @@ ASurvivalPlayerController::ASurvivalPlayerController()
     RootLayout = nullptr;
 }
 
+//==================================================Debug Functions==================================================
+void ASurvivalPlayerController::DebugListAllItemAssets()
+{
+    UAssetManager* AssetManager = UAssetManager::GetIfInitialized();
+    if (!AssetManager)
+    {
+        UE_LOG(LogTemp, Error, TEXT("AssetManager not initialized!"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("=== ALL AVAILABLE ITEM ASSETS ==="));
+
+    // Try to list all UItemInfo assets no matter where they are
+    UObjectLibrary* ItemLibrary = UObjectLibrary::CreateLibrary(UItemInfo::StaticClass(), true, true);
+    ItemLibrary->LoadAssetDataFromPath("/Game");
+
+    TArray<FAssetData> AllItems;
+    ItemLibrary->GetAssetDataList(AllItems);
+
+    UE_LOG(LogTemp, Log, TEXT("ObjectLibrary found %d UItemInfo assets:"), AllItems.Num());
+    for (const FAssetData& Asset : AllItems)
+    {
+        UE_LOG(LogTemp, Log, TEXT("  Path: %s"), *Asset.GetSoftObjectPath().ToString());
+    
+        // Try to load it and check its registry key
+        UItemInfo* Item = Cast<UItemInfo>(Asset.GetAsset());
+        if (Item)
+        {
+            UE_LOG(LogTemp, Log, TEXT("    RegistryKey: %s"), *Item->RegistryKey.ToString());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("    Failed to load asset"));
+        }
+    }
+}
 
 //==================================================BeginPlay==================================================
 void ASurvivalPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Task: Initialize enhanced input – because even our UI deserves a snazzy dance routine.
+    // 1) Check if we are on the server (HasAuthority()) vs. client
+    if (HasAuthority())
+    {
+        UE_LOG(LogTemp, Log, TEXT("BeginPlay: Running on server (could be dedicated or listen)."));
+        // If you have server-only logic (replication setup, etc.), put it here.
+    }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("BeginPlay: Running on a remote client."));
+    }
+
+    // Initialize enhanced input
     InitializeEnhancedInput();
     
-    // Task: Create our Master UI Layout widget – the ultimate stage for our UI performance.
+    // Create our Master UI Layout widget only for local controllers
     CreateMasterLayout();
-
-    
-    
 }
 
 //==================================================EndPlay==================================================
@@ -68,6 +112,12 @@ void ASurvivalPlayerController::SetupInputComponent()
 //==================================================InitializeEnhancedInput==================================================
 void ASurvivalPlayerController::InitializeEnhancedInput() const
 {
+    // Only setup input for local controllers
+    if (!IsLocalController())
+    {
+        return;
+    }
+
     // Task: Get our local player and add the default input mapping – think of it as handing out VIP passes.
     if (const ULocalPlayer* LocalPlayer = GetLocalPlayer())
     {
@@ -88,28 +138,43 @@ void ASurvivalPlayerController::InitializeEnhancedInput() const
 //==================================================CreateMasterLayout==================================================
 void ASurvivalPlayerController::CreateMasterLayout()
 {
-    // Task: Only create the stage for local controllers (because remote ones aren’t invited to this party).
-    if (!IsLocalController()) return;
+    // 2) Check if we have a local player controller (listen server or normal client)
+    //    If this is a dedicated server with no local player, this will be false, skipping UI creation
+    if (!IsLocalController())
+    {
+        UE_LOG(LogTemp, Log, TEXT("CreateMasterLayout: Not a local controller, skipping UI creation."));
+        return;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("CreateMasterLayout: Local player controller => creating UI."));
     
-    // Task: Create our Master UI Layout widget if it doesn’t exist – we wouldn’t want an empty stage now, would we?
+    // Create our Master UI Layout widget if it doesn't exist and class is valid
     if (MasterLayoutClass && !RootLayout)
     {
         RootLayout = CreateWidget<UMasterUILayout>(this, MasterLayoutClass);
         if (RootLayout)
         {
-            // Task: Add our stage to the viewport and kick off the default HUD layout.
+            // Add our stage to the viewport and kick off the default HUD layout
             RootLayout->AddToViewport();
             RootLayout->PushDefaultHUDLayout();
             
+            UE_LOG(LogTemp, Log, TEXT("CreateMasterLayout: UI widget successfully added to viewport."));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("CreateMasterLayout: Failed to create MasterUILayout widget"));
         }
     }
+    else if (!MasterLayoutClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CreateMasterLayout: MasterLayoutClass is not set"));
+    }
 }
-
-
 
 //==================================================InventoryOnClient==================================================
 void ASurvivalPlayerController::InventoryOnClient_Implementation()
 {
+    // This function only executes on clients
     UE_LOG(LogTemp, Log, TEXT("InventoryOnClient_Implementation - Starting"));
     
     if (!RootLayout)
@@ -150,11 +215,11 @@ void ASurvivalPlayerController::InventoryOnClient_Implementation()
     }
 }
 
-
-
 //==================================================CloseInventory==================================================
 void ASurvivalPlayerController::CloseInventory_Implementation()
 {
+    // This interface implementation will be called on both server and clients
+    
     // Task: Tell our Master UI Layout to remove the inventory widget from the stage.
     if (RootLayout)
     {
@@ -165,6 +230,7 @@ void ASurvivalPlayerController::CloseInventory_Implementation()
     SetInputMode(FInputModeGameOnly());
     bShowMouseCursor = false;
     bInventoryShown = false;
+    
     if (APawn* LocalPawn = GetPawn())
     {
         if (ACharacter* LocalCharacter = Cast<ACharacter>(LocalPawn))
@@ -174,11 +240,15 @@ void ASurvivalPlayerController::CloseInventory_Implementation()
     }
 }
 
-
-
-//==================================================
+//==================================================InitializeInventoryWidget==================================================
 void ASurvivalPlayerController::InitializeInventoryWidget()
 {
+    // Only perform UI operations on local controllers
+    if (!IsLocalController())
+    {
+        return;
+    }
+    
     if (!RootLayout)
     {
         UE_LOG(LogTemp, Warning, TEXT("InitializeInventoryWidget: RootLayout is null"));
@@ -199,15 +269,20 @@ void ASurvivalPlayerController::InitializeInventoryWidget()
     }
 }
 
-
-
 //==================================================GetInventorySlotWidget==================================================
 UInventorySlot* ASurvivalPlayerController::GetInventorySlotWidget(E_ContainerType ContainerType, int32 SlotIndex)
 {
+    // This function should only be called on local controllers
+    if (!IsLocalController())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: Not a local controller"));
+        return nullptr;
+    }
+    
     // 1. Check if the main UI container (RootLayout) is available.
     if (!RootLayout)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: RootLayout is null"));
+        UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: RootLayout is null"));
         return nullptr;
     }
 
@@ -218,7 +293,7 @@ UInventorySlot* ASurvivalPlayerController::GetInventorySlotWidget(E_ContainerTyp
         UGameInventoryLayout* InvLayout = RootLayout->PushGameInventoryLayout();
         if (!InvLayout)
         {
-            UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Failed to create GameInventoryLayout"));
+            UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: Failed to create GameInventoryLayout"));
             return nullptr;
         }
     }
@@ -227,27 +302,27 @@ UInventorySlot* ASurvivalPlayerController::GetInventorySlotWidget(E_ContainerTyp
     UGameInventoryLayout* GameInventoryLayout = RootLayout->GetGameInventoryLayout();
     if (!GameInventoryLayout)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: GameInventoryLayout is null"));
+        UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: GameInventoryLayout is null"));
         return nullptr;
     }
 
     UInventoryWidget* InventoryWidget = GameInventoryLayout->GetInventoryWidget();
     if (!InventoryWidget)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: InventoryWidget is null"));
+        UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: InventoryWidget is null"));
         return nullptr;
     }
 
     UItemContainerGrid* ItemContainerGrid = InventoryWidget->GetItemContainerGrid();
     if (!ItemContainerGrid)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: ItemContainerGrid is null"));
+        UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: ItemContainerGrid is null"));
         return nullptr;
     }
 
     if (!ItemContainerGrid->Slots.IsValidIndex(SlotIndex))
     {
-        UE_LOG(LogTemp, Warning, TEXT("GetInventoryWidget: Invalid slot index"));
+        UE_LOG(LogTemp, Warning, TEXT("GetInventorySlotWidget: Invalid slot index"));
         return nullptr;
     }
 
@@ -267,19 +342,27 @@ UInventorySlot* ASurvivalPlayerController::GetInventorySlotWidget(E_ContainerTyp
     }
 }
 
-
-
 //==================================================UpdateItemSlot==================================================
 void ASurvivalPlayerController::UpdateItemSlot_Implementation(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index)
 {
-    Client_UpdateSlot_Implementation(ContainerType, ItemInfo, Index);
+    // Interface implementations are called on both server and clients
+    
+    // We need to update the UI on the client that owns this controller
+    if (IsLocalController())
+    {
+        Client_UpdateSlot(ContainerType, ItemInfo, Index);
+    }
+    else
+    {
+        // For remote controllers, we need the reliable RPC to update their clients
+        Client_UpdateSlot(ContainerType, ItemInfo, Index);
+    }
 }
-
-
 
 //==================================================Client_UpdateSlot==================================================
 void ASurvivalPlayerController::Client_UpdateSlot_Implementation(E_ContainerType Container, FItemStructure ItemInfo, int32 Index)
 {
+    // This RPC only executes on the owning client
     UInventorySlot* InventorSlot = GetInventorySlotWidget(Container, Index);
 
     if (IsValid(InventorSlot))
@@ -287,6 +370,8 @@ void ASurvivalPlayerController::Client_UpdateSlot_Implementation(E_ContainerType
         // Update the slot with the new item info
         InventorSlot->UpdateSlot(ItemInfo);
     }
-
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Client_UpdateSlot: Invalid inventory slot at index %d"), Index);
+    }
 }
-

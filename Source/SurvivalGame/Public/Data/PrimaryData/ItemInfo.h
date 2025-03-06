@@ -43,7 +43,7 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core")
     FName RegistryKey;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core", meta = (AllowedClasses = "Texture2D"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core", meta = (AllowedClasses = "/Script/Engine.Texture2D"))
     TSoftObjectPtr<UTexture2D> ItemIcon;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Core")

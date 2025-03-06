@@ -15,7 +15,7 @@
 // Forward declarations
 class UInputAction;
 class UMasterUILayout;
-class UGameInventoryLayout;  // Add this forward declaration
+class UGameInventoryLayout;
 class UInventorySlot;
 
 #include "SurvivalPlayerController.generated.h"
@@ -34,41 +34,7 @@ public:
     ASurvivalPlayerController();
 
     UFUNCTION(BlueprintCallable, Category = "Debug")
-    void DebugListAllItemAssets()
-    {
-        UAssetManager* AssetManager = UAssetManager::GetIfInitialized();
-        if (!AssetManager)
-        {
-            UE_LOG(LogTemp, Error, TEXT("AssetManager not initialized!"));
-            return;
-        }
-    
-        UE_LOG(LogTemp, Log, TEXT("=== ALL AVAILABLE ITEM ASSETS ==="));
-    
-        // Try to list all UItemInfo assets no matter where they are
-        UObjectLibrary* ItemLibrary = UObjectLibrary::CreateLibrary(UItemInfo::StaticClass(), true, true);
-        ItemLibrary->LoadAssetDataFromPath("/Game");
-    
-        TArray<FAssetData> AllItems;
-        ItemLibrary->GetAssetDataList(AllItems);
-    
-        UE_LOG(LogTemp, Log, TEXT("ObjectLibrary found %d UItemInfo assets:"), AllItems.Num());
-        for (const FAssetData& Asset : AllItems)
-        {
-            UE_LOG(LogTemp, Log, TEXT("  Path: %s"), *Asset.GetSoftObjectPath().ToString());
-        
-            // Try to load it and check its registry key
-            UItemInfo* Item = Cast<UItemInfo>(Asset.GetAsset());
-            if (Item)
-            {
-                UE_LOG(LogTemp, Log, TEXT("    RegistryKey: %s"), *Item->RegistryKey.ToString());
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("    Failed to load asset"));
-            }
-        }
-    }
+    void DebugListAllItemAssets();
 
 protected:
     virtual void BeginPlay() override;
@@ -115,7 +81,7 @@ protected:
     void CloseInventory();
     virtual void CloseInventory_Implementation() override;
 
-    UFUNCTION(BlueprintCallable,BlueprintType, Category = "Inventory")
+    UFUNCTION(BlueprintCallable, BlueprintType, Category = "Inventory")
     void InitializeInventoryWidget();
     
     UFUNCTION(BlueprintCallable, Category = "Inventory")
