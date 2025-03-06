@@ -132,8 +132,17 @@ void UInventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPo
     DragVisual->MaxAmmo = StoredItemInfo.MaxAmmo;
     DragVisual->CurrentHP = StoredItemInfo.CurrentHP;
     DragVisual->MaxHP = StoredItemInfo.MaxHP;
+    
+    // Calculate and format total weight with specific formatting options
     float TotalWeight = StoredItemInfo.ItemQuantity * ItemAssetInfo->ItemWeight;
-    DragVisual->Weight = FText::AsNumber(TotalWeight);
+    FNumberFormattingOptions FormatOptions;
+    FormatOptions.MinimumFractionalDigits = 1;
+    FormatOptions.MaximumFractionalDigits = 3;
+    FormatOptions.UseGrouping = true;
+    FormatOptions.AlwaysSign = false;
+    FormatOptions.MinimumIntegralDigits = 1;
+    FormatOptions.MaximumIntegralDigits = 324;
+    DragVisual->Weight = FText::AsNumber(TotalWeight, &FormatOptions);
     
     // Create the drag operation and assign the drag visual
     UItemDrag* DragOperation = NewObject<UItemDrag>();
@@ -299,7 +308,11 @@ void UInventorySlot::UpdateUIElements() const
         float TotalWeight = ItemAssetInfo->ItemWeight * StoredItemInfo.ItemQuantity;
         FNumberFormattingOptions FormatOptions;
         FormatOptions.MinimumFractionalDigits = 1;
-        FormatOptions.MaximumFractionalDigits = 1;
+        FormatOptions.MaximumFractionalDigits = 3;
+        FormatOptions.UseGrouping = true;
+        FormatOptions.AlwaysSign = false;
+        FormatOptions.MinimumIntegralDigits = 1;
+        FormatOptions.MaximumIntegralDigits = 324;
         FText WeightTextValue = FText::AsNumber(TotalWeight, &FormatOptions);
         ItemWeight->SetText(WeightTextValue);
         ItemWeight->SetVisibility(ESlateVisibility::Visible);

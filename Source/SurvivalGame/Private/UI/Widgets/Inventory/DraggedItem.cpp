@@ -83,7 +83,7 @@ void UDraggedItem::UpdateVisuals()
         if (!TextTop.IsEmpty())
         {
             TopText->SetText(TextTop);
-            TopText->SetVisibility(ESlateVisibility::Visible);
+            TopText->SetVisibility(ESlateVisibility::Hidden);
         }
         else
         {
@@ -98,6 +98,7 @@ void UDraggedItem::UpdateVisuals()
         {
             ItemWeight->SetText(Weight);
             ItemWeight->SetVisibility(ESlateVisibility::Visible);
+            
         }
         else
         {
