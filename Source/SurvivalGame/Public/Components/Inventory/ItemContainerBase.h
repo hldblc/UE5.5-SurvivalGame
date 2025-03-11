@@ -1,5 +1,6 @@
 // ItemContainerBase.h
 
+// ReSharper disable All
 #pragma once
 
 #include "CoreMinimal.h"
@@ -23,7 +24,7 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void BeginPlay() override;
 
-protected:
+
     /** Container configuration */
     UPROPERTY(EditDefaultsOnly, Category = "Container|Config")
     E_ContainerType ContainerType;
@@ -55,7 +56,7 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Container|Events")
     void UpdateUI(int32 Index, const FItemStructure& ItemInfo);
 
-public:
+
     /** Find empty slot in container */
     UFUNCTION(BlueprintPure, Category = "Container|Operations")
     bool FindEmptySlot(bool& Success, int32& EmptyIndex) const;
@@ -64,4 +65,46 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Container|Operations")
     bool AddItem(const FItemStructure& Item);
 
+    UFUNCTION(Server, Reliable)
+    void OnSlotDrop(UItemContainerBase* FromContainer, int32 FromItemIndex, int32 DroppedItemIndex);
+
+    UFUNCTION(BlueprintCallable, Category = "Container|Operations")
+    virtual void HandleSlotDrop (UItemContainerBase* HandleFromContainer, int32 HandleFromItemIndex, int32 HandleDroppedItemIndex);
+
+    UFUNCTION(BlueprintCallable, Category = "Container|Operations")
+    void TransferItem(UItemContainerBase* ToComponent, int32 ToSpecificIndex, int32 ItemIndexToTransfer);
+
+    UFUNCTION(BlueprintPure, Category = "Container|Operations")
+    bool IsSlotEmpty(int32 SlotIndex) const;
+
+    UFUNCTION(BlueprintPure, Category = "Container|Operations")
+    FItemStructure GetItemAtIndex(int32 Index) const;
+
+    UFUNCTION(BlueprintCallable, Category = "Container|Operations")
+    virtual void AddItemToIndex(const FItemStructure& ItemInfo, int32 LocalSpecificIndex, int32 LocalItemIndex, bool& Success);
+
+    UFUNCTION(BlueprintCallable, Category = "Container|Debug")
+    void PrintInventoryContents();
+
+    UFUNCTION(BlueprintCallable, Category = "Container|Debug")
+    virtual void RemoveItemAtIndex(int32 RemovedIndex, bool& Success);
+
+    
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

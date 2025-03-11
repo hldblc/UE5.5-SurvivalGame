@@ -8,6 +8,7 @@
 #include "CommonUI/Public/CommonBorder.h"
 #include "Components/ProgressBar.h"
 #include "Input/Events.h"
+#include "Interfaces/ItemInterface.h"
 #include "UI/Widgets/Inventory/DraggedItem.h" // Include DraggedItem.h
 #include "InventorySlot.generated.h"
 
@@ -27,6 +28,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory|Slot")
 	void UpdateSlot(FItemStructure ItemInfo);
 
+	UFUNCTION(BlueprintCallable, Category="Inventory|Slot")
+	void ClearSlot();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory|Slot")
 	int32 ItemIndex;
 
@@ -40,7 +44,8 @@ protected:
 	// Mouse interaction override for drag and drop functionality
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& Operation) override; 
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& Operation) override;
+	virtual bool NativeOnDrop(const FGeometry& MyGeometry, const FDragDropEvent& PointerEvent, UDragDropOperation* Operation) override;
 	
 	// Widget class to use for drag visual
 	UPROPERTY(EditDefaultsOnly, Category = "Drag and Drop")

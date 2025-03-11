@@ -25,5 +25,8 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
 	void UpdateItemSlot(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
+	void ResetItemSlot(E_ContainerType ContainerType, int32 Index);
 	
 };

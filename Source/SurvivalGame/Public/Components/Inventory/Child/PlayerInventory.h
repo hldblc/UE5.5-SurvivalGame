@@ -30,4 +30,19 @@ class SURVIVALGAME_API UPlayerInventory : public UItemContainerBase
     GENERATED_BODY()
 
 
+public:
+
+    UPlayerInventory();
+
+    TWeakObjectPtr<AActor> CachedOwner;
+
+    virtual void BeginPlay() override;
+
+    virtual void HandleSlotDrop(UItemContainerBase* HandleFromContainer, int32 HandleFromItemIndex, int32 HandleDroppedItemIndex) override;
+
+    virtual void AddItemToIndex(const FItemStructure& ItemInfo, int32 LocalSpecificIndex, int32 LocalItemIndex, bool& Success) override;
+
+    virtual void RemoveItemAtIndex(int32 RemovedIndex, bool& Success) override;
+        
+
 };

@@ -91,6 +91,11 @@ protected:
     void Client_UpdateSlot(E_ContainerType Container, FItemStructure ItemInfo, int32 Index);
     
     virtual void UpdateItemSlot_Implementation(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index) override;
+
+
+    UFUNCTION(Client, Reliable, Category = "Inventory")
+    void Client_ResetSlot(E_ContainerType Container, int32 Index);
+    virtual void ResetItemSlot_Implementation(E_ContainerType ContainerType, int32 Index) override;
     
 private:
     /** Helper function to initialize our CommonUI-enhanced input mappings. */

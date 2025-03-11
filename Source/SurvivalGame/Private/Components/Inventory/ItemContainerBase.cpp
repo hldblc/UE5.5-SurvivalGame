@@ -131,23 +131,21 @@ void UItemContainerBase::UpdateUI(const int32 Index, const FItemStructure& ItemI
     AActor* OwnerActor = GetOwner();
     if (!OwnerActor)
     {
+        UE_LOG(LogTemp, Warning, TEXT("UpdateUI: Owner actor is null"));
         return;
-    }
-
-    switch (ContainerType)
-    {
-    case E_ContainerType::Inventory:
-        break;
-    default:
-        break;
     }
     
     if (OwnerActor->Implements<UPlayerInterface>())
     {
-        IPlayerInterface::Execute_UpdateItem(OwnerActor,ContainerType,ItemInfo, Index);
-    } 
-    
-
+        // Make sure to use the correct parameter order that matches the interface
+        IPlayerInterface::Execute_UpdateItem(OwnerActor, ContainerType, Index, ItemInfo);
+        UE_LOG(LogTemp, Log, TEXT("UpdateUI: Updated UI for slot %d with item %s"),
+            Index, *ItemInfo.RegistryKey.ToString());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UpdateUI: Owner does not implement PlayerInterface"));
+    }
 }
 
 //===========================================FindEmptySlot====================================================
@@ -296,3 +294,225 @@ bool UItemContainerBase::AddItem(const FItemStructure& Item)
         *LocalItemInfo.RegistryKey.ToString());
     return false;
 }
+
+
+void UItemContainerBase::OnSlotDrop_Implementation(UItemContainerBase* FromContainer, int32 FromItemIndex,
+                                                   int32 DroppedItemIndex)
+{
+    UE_LOG(LogTemp, Log, TEXT("UItemContainerBase::OnSlotDrop: FromContainer=%p, FromItemIndex=%d, DroppedItemIndex=%d"),
+        FromContainer, FromItemIndex, DroppedItemIndex);
+        
+    // Add validation just in case
+    if (!FromContainer)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("OnSlotDrop: FromContainer is null"));
+        return;
+    }
+
+    HandleSlotDrop(FromContainer, FromItemIndex, DroppedItemIndex);
+}
+
+
+
+void UItemContainerBase::HandleSlotDrop(UItemContainerBase* HandleFromContainer, int32 HandleFromItemIndex,
+    int32 HandleDroppedItemIndex)
+{
+    
+}
+
+
+// ================================================ TransferItem ================================================
+void UItemContainerBase::TransferItem(UItemContainerBase* ToComponent, int32 ToSpecificIndex, int32 ItemIndexToTransfer)
+{
+    UE_LOG(LogTemp, Log, TEXT("TransferItem: ToComponent=%p, ToSpecificIndex=%d, ItemIndexToTransfer=%d"),
+        ToComponent, ToSpecificIndex, ItemIndexToTransfer);
+        
+    // Early out check - invalid parameters
+    if (!ToComponent || !ToComponent->IsValidLowLevel())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TransferItem: Invalid receiver component"));
+        return;
+    }
+    
+    // Check if attempting to move to same slot in same container
+    if (ToComponent == this && ToSpecificIndex == ItemIndexToTransfer)
+    {
+        UE_LOG(LogTemp, Log, TEXT("TransferItem: Attempting to move to same slot in same container - ignoring"));
+        return;
+    }
+    
+    // Check if destination slot is empty
+    if (ToComponent->IsSlotEmpty(ToSpecificIndex))
+    {
+        // Get the item to move
+        FItemStructure ItemToMove = GetItemAtIndex(ItemIndexToTransfer);
+        
+        // Validate item exists
+        if (ItemToMove.RegistryKey.IsNone())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("TransferItem: Trying to move an empty item"));
+            return;
+        }
+        
+        UE_LOG(LogTemp, Log, TEXT("Item details - Registry Key: %s, Quantity: %d, Asset Path: %s"),
+            *ItemToMove.RegistryKey.ToString(),
+            ItemToMove.ItemQuantity,
+            ItemToMove.ItemAsset.IsNull() ? TEXT("NULL") : *ItemToMove.ItemAsset.ToSoftObjectPath().ToString());
+        
+        // Add item to destination container
+        bool bAddSuccess = false;
+        ToComponent->AddItemToIndex(ItemToMove, ToSpecificIndex, ItemIndexToTransfer, bAddSuccess);
+        
+        if (bAddSuccess)
+        {
+            // Remove item from source container
+            bool bRemovalSuccess = false;
+            RemoveItemAtIndex(ItemIndexToTransfer, bRemovalSuccess);
+            
+            if (!bRemovalSuccess)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("TransferItem: Failed to remove item at original slot %d"), ItemIndexToTransfer);
+                
+                // Clear the slot manually if removal failed through normal channels
+                FItemStructure EmptyItem;
+                Items[ItemIndexToTransfer] = EmptyItem;
+                
+                // Use ResetItem on owner instead of UpdateUI if possible
+                if (GetOwner() && GetOwner()->Implements<UPlayerInterface>())
+                {
+                    IPlayerInterface::Execute_ResetItem(GetOwner(), ContainerType, ItemIndexToTransfer);
+                }
+                else
+                {
+                    // Fallback to UpdateUI
+                    UpdateUI(ItemIndexToTransfer, EmptyItem);
+                }
+            }
+            
+            UE_LOG(LogTemp, Log, TEXT("TransferItem: Successfully moved item from slot %d to slot %d"),
+                ItemIndexToTransfer, ToSpecificIndex);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("TransferItem: Failed to add item to destination slot"));
+        }
+    }
+    else
+    {
+        // Implement item swapping logic here if needed
+        UE_LOG(LogTemp, Warning, TEXT("TransferItem: Destination slot is not empty - swapping not implemented yet"));
+    }
+}
+
+
+// ================================================ IsSlotEmpty ================================================
+bool UItemContainerBase::IsSlotEmpty(int32 SlotIndex) const
+{
+    if (!Items.IsValidIndex(SlotIndex))
+    {
+        return true;
+    }
+
+    const FItemStructure& Item = Items[SlotIndex];
+    return Item.RegistryKey == NAME_None || Item.ItemAsset.IsNull() || Item.ItemQuantity <= 0;
+}
+
+
+// ================================================ GetItemAtIndex ================================================
+FItemStructure UItemContainerBase::GetItemAtIndex(int32 Index) const
+{
+    int32 LocalIndex = Index;
+
+    if (Items.IsValidIndex(LocalIndex))
+    {
+        UE_LOG(LogTemp, Log, TEXT("GetItemAtIndex: Index %d contains item with key %s"),
+            LocalIndex,
+            Items[LocalIndex].RegistryKey.IsNone() ? TEXT("None") : *Items[LocalIndex].RegistryKey.ToString());
+        
+        return Items[LocalIndex];
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GetItemAtIndex: Invalid index %d (array size: %d)"),
+            LocalIndex, Items.Num());
+        return FItemStructure();
+    }
+}
+
+
+// ================================================ AddItemToIndex ================================================
+void UItemContainerBase::AddItemToIndex(const FItemStructure& ItemInfo, int32 LocalSpecificIndex, int32 LocalItemIndex, bool& Success)
+{
+    const FItemStructure& LocalItem = ItemInfo;
+    int32 LocalIndex = LocalSpecificIndex;
+    int32 LocalFromIndex = LocalItemIndex;
+
+    UE_LOG(LogTemp, Log, TEXT("AddItemToIndex: ItemKey=%s, LocalIndex=%d, LocalFromIndex=%d"),
+        *ItemInfo.RegistryKey.ToString(), LocalIndex, LocalFromIndex);
+
+    Success = false;
+    
+    if (IsSlotEmpty(LocalIndex))
+    {
+        if (Items.IsValidIndex(LocalIndex))
+        {
+            Items[LocalIndex] = LocalItem;
+            
+            // Update UI for the new slot
+            UpdateUI(LocalIndex, LocalItem);
+            
+            Success = true;
+            UE_LOG(LogTemp, Log, TEXT("AddItemToIndex: Successfully added item to slot %d"), LocalIndex);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("AddItemToIndex: Invalid slot index %d"), LocalIndex);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AddItemToIndex: Slot %d is not empty!"), LocalIndex);
+    }
+}
+
+// ================================================ RemoveItemAtIndex ================================================
+void UItemContainerBase::RemoveItemAtIndex(int32 RemovedIndex, bool& Success)
+{
+    if (Items.IsValidIndex(RemovedIndex))
+    {
+        Success = true;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("RemoveItemAtIndex: Item not removed at index!"))
+    }
+}
+
+
+
+void UItemContainerBase::PrintInventoryContents()
+{
+    UE_LOG(LogTemp, Log, TEXT("==== INVENTORY CONTENTS (%d slots) ===="), Items.Num());
+    for (int32 i = 0; i < Items.Num(); i++)
+    {
+        if (!Items[i].RegistryKey.IsNone())
+        {
+            UE_LOG(LogTemp, Log, TEXT("Slot %d: Item=%s, Quantity=%d, Path=%s"),
+                i,
+                *Items[i].RegistryKey.ToString(),
+                Items[i].ItemQuantity,
+                Items[i].ItemAsset.IsNull() ? TEXT("NULL") : *Items[i].ItemAsset.ToSoftObjectPath().ToString());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Log, TEXT("Slot %d: [EMPTY]"), i);
+        }
+    }
+}
+
+
+
+
+
+
+

@@ -2,6 +2,7 @@
 #include "CommonButtonBase.h"
 #include "SurvivalPlayerController.h"
 #include "Interfaces/ControllerInterface.h"
+#include "Inventory/ItemContainerBase.h"
 
 UGameInventoryLayout::UGameInventoryLayout(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -23,7 +24,33 @@ void UGameInventoryLayout::NativeConstruct()
     {
         InventoryExitButton->OnClicked().AddUObject(this, &UGameInventoryLayout::OnInventoryExitButtonClicked);
     }
-}
+
+    if (InventoryWidget)
+    {
+        // Since the ItemContainerGrid is a widget and not a component,
+        // we need to get the owner pawn and look for the inventory component there
+        APawn* OwnerPawn = GetOwningPlayerPawn();
+        if (OwnerPawn)
+        {
+            UItemContainerBase* InventoryContainer = Cast<UItemContainerBase>(
+                OwnerPawn->FindComponentByClass(UItemContainerBase::StaticClass()));
+            
+            if (InventoryContainer)
+            {
+                InventoryContainer->PrintInventoryContents();
+                UE_LOG(LogTemp, Log, TEXT("Printed inventory contents for debugging"));
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Could not find inventory container component"));
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Could not get owning player pawn"));
+        }
+    }
+} 
 
 void UGameInventoryLayout::OnInventoryExitButtonClicked()
 {
@@ -36,12 +63,10 @@ void UGameInventoryLayout::NativeOnDeactivated()
 {
     Super::NativeOnDeactivated();
 
-    // In Blueprint, "Event On Deactivated" -> "IsValid?" -> "Close Inventory".
-    // We do the same here via C++:
+    
     if (CachedPlayerController)
     {
-        // Because SurvivalPlayerController implements IControllerInterface, 
-        // we can call CloseInventory via Execute_CloseInventory().
+        
         IControllerInterface::Execute_CloseInventory(CachedPlayerController);
     }
     else

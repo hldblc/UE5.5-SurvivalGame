@@ -342,7 +342,7 @@ UInventorySlot* ASurvivalPlayerController::GetInventorySlotWidget(E_ContainerTyp
     }
 }
 
-//==================================================UpdateItemSlot==================================================
+//==================================================UpdateItemSlot Interface==================================================
 void ASurvivalPlayerController::UpdateItemSlot_Implementation(E_ContainerType ContainerType, FItemStructure ItemInfo, int32 Index)
 {
     // Interface implementations are called on both server and clients
@@ -358,6 +358,8 @@ void ASurvivalPlayerController::UpdateItemSlot_Implementation(E_ContainerType Co
         Client_UpdateSlot(ContainerType, ItemInfo, Index);
     }
 }
+
+
 
 //==================================================Client_UpdateSlot==================================================
 void ASurvivalPlayerController::Client_UpdateSlot_Implementation(E_ContainerType Container, FItemStructure ItemInfo, int32 Index)
@@ -375,3 +377,59 @@ void ASurvivalPlayerController::Client_UpdateSlot_Implementation(E_ContainerType
         UE_LOG(LogTemp, Warning, TEXT("Client_UpdateSlot: Invalid inventory slot at index %d"), Index);
     }
 }
+
+
+// ==================================================ResetItemSlot Interface==================================================
+void ASurvivalPlayerController::ResetItemSlot_Implementation(E_ContainerType ContainerType, int32 Index)
+{
+    Client_ResetSlot(ContainerType, Index);
+    
+}
+
+// ==================================================Client_ResetSlot==================================================
+void ASurvivalPlayerController::Client_ResetSlot_Implementation(E_ContainerType Container, int32 Index)
+{
+    // Validate index is in reasonable range
+    if (Index < 0)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Client_ResetSlot: Invalid negative index %d"), Index);
+        return;
+    }
+    
+    UInventorySlot* InventorySlot = GetInventorySlotWidget(Container, Index);
+
+    if (IsValid(InventorySlot))
+    {
+        InventorySlot->ClearSlot();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Client_ResetSlot: Failed to get valid inventory slot at index %d"), Index);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

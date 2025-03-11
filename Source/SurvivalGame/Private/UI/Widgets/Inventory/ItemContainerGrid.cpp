@@ -110,8 +110,8 @@ void UItemContainerGrid::AddSlots(int32 Amount)
         return;
     }
     
-    // Loop from 1 to Amount (1-based index as per your Blueprint instructions).
-    for (int32 i = 1; i <= Amount; i++)
+    // IMPORTANT CHANGE: Start from 0 to match data array indices
+    for (int32 i = 0; i < Amount; i++)
     {
         // Create the inventory slot widget.
         UInventorySlot* NewSlot = CreateWidget<UInventorySlot>(PC, InventorySlotClass);
@@ -119,17 +119,13 @@ void UItemContainerGrid::AddSlots(int32 Amount)
         {
             // Set the slot's container type.
             NewSlot->ContainerType = ContainerType;
-            // Set the slot's item index.
+            // Set the slot's item index to match the 0-based data array
             NewSlot->ItemIndex = i;
             
-            // Call AddSlotToGrid with the 1-based index and the new slot.
-            AddSlotToGrid(i, NewSlot);
+            // Call AddSlotToGrid with adjusted index for visual layout
+            AddSlotToGrid(i + 1, NewSlot);
             
-            // Optionally, also add it to our Slots array (if not already added in AddSlotToGrid).
-            // (Our AddSlotToGrid already adds it, so this is optional.)
-            // Slots.Add(NewSlot);
-            
-            
+            UE_LOG(LogTemp, Log, TEXT("AddSlots: Created slot with index %d"), i);
         }
         else
         {
