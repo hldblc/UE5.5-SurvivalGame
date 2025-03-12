@@ -528,7 +528,7 @@ void UInventorySlot::UpdateSlot(FItemStructure ItemInfo)
     // Skip if registry key is invalid
     if (ItemInfo.RegistryKey.IsNone())
     {
-        UE_LOG(LogTemp, Warning, TEXT("UpdateSlot: Item has no registry key, clearing slot"));
+        UE_LOG(LogTemp, Verbose, TEXT("UpdateSlot: Empty item received for slot %d, clearing"), ItemIndex);
         ClearSlot();
         return;
     }
@@ -673,7 +673,6 @@ void UInventorySlot::ClearSlot()
     UE_LOG(LogTemp, Verbose, TEXT("ClearSlot: Cleared slot %d"), ItemIndex);
 #endif
 }
-
 
 
 

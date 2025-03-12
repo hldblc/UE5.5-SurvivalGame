@@ -341,24 +341,24 @@ void UItemContainerBase::TransferItem(UItemContainerBase* ToComponent, int32 ToS
         return;
     }
     
+    // Get the item to move
+    FItemStructure ItemToMove = GetItemAtIndex(ItemIndexToTransfer);
+    
+    // Validate item exists
+    if (ItemToMove.RegistryKey.IsNone())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TransferItem: Trying to move an empty item"));
+        return;
+    }
+    
+    UE_LOG(LogTemp, Log, TEXT("Item details - Registry Key: %s, Quantity: %d, Asset Path: %s"),
+        *ItemToMove.RegistryKey.ToString(),
+        ItemToMove.ItemQuantity,
+        ItemToMove.ItemAsset.IsNull() ? TEXT("NULL") : *ItemToMove.ItemAsset.ToSoftObjectPath().ToString());
+    
     // Check if destination slot is empty
     if (ToComponent->IsSlotEmpty(ToSpecificIndex))
     {
-        // Get the item to move
-        FItemStructure ItemToMove = GetItemAtIndex(ItemIndexToTransfer);
-        
-        // Validate item exists
-        if (ItemToMove.RegistryKey.IsNone())
-        {
-            UE_LOG(LogTemp, Warning, TEXT("TransferItem: Trying to move an empty item"));
-            return;
-        }
-        
-        UE_LOG(LogTemp, Log, TEXT("Item details - Registry Key: %s, Quantity: %d, Asset Path: %s"),
-            *ItemToMove.RegistryKey.ToString(),
-            ItemToMove.ItemQuantity,
-            ItemToMove.ItemAsset.IsNull() ? TEXT("NULL") : *ItemToMove.ItemAsset.ToSoftObjectPath().ToString());
-        
         // Add item to destination container
         bool bAddSuccess = false;
         ToComponent->AddItemToIndex(ItemToMove, ToSpecificIndex, ItemIndexToTransfer, bAddSuccess);
@@ -399,8 +399,84 @@ void UItemContainerBase::TransferItem(UItemContainerBase* ToComponent, int32 ToS
     }
     else
     {
-        // Implement item swapping logic here if needed
-        UE_LOG(LogTemp, Warning, TEXT("TransferItem: Destination slot is not empty - swapping not implemented yet"));
+        // Implement item swapping logic
+        FItemStructure DestinationItem = ToComponent->GetItemAtIndex(ToSpecificIndex);
+        
+        // Check if we should stack the items (same items with stackable property)
+        if (ItemToMove.RegistryKey == DestinationItem.RegistryKey)
+        {
+            // Load the item info to check if it's stackable
+            UItemInfo* ItemInfo = nullptr;
+            if (!DestinationItem.ItemAsset.IsNull())
+            {
+                ItemInfo = Cast<UItemInfo>(DestinationItem.ItemAsset.LoadSynchronous());
+            }
+            
+            if (ItemInfo && ItemInfo->bStackable)
+            {
+                UE_LOG(LogTemp, Log, TEXT("TransferItem: Items can be stacked, checking stack limits"));
+                
+                int32 MaxStack = ItemInfo->StackSize;
+                int32 DestinationQuantity = DestinationItem.ItemQuantity;
+                int32 SourceQuantity = ItemToMove.ItemQuantity;
+                
+                // Check if destination stack has room
+                if (DestinationQuantity < MaxStack)
+                {
+                    int32 SpaceInStack = MaxStack - DestinationQuantity;
+                    int32 AmountToTransfer = FMath::Min(SourceQuantity, SpaceInStack);
+                    
+                    UE_LOG(LogTemp, Log, TEXT("TransferItem: Stacking %d items onto existing stack of %d (max: %d)"),
+                        AmountToTransfer, DestinationQuantity, MaxStack);
+                    
+                    // Update destination stack
+                    DestinationItem.ItemQuantity += AmountToTransfer;
+                    ToComponent->Items[ToSpecificIndex] = DestinationItem;
+                    ToComponent->UpdateUI(ToSpecificIndex, DestinationItem);
+                    
+                    // Update source stack or remove source item if completely transferred
+                    if (AmountToTransfer >= SourceQuantity)
+                    {
+                        // Clear source slot
+                        bool bRemovalSuccess = false;
+                        RemoveItemAtIndex(ItemIndexToTransfer, bRemovalSuccess);
+                        
+                        UE_LOG(LogTemp, Log, TEXT("TransferItem: Completely transferred source stack to destination"));
+                    }
+                    else
+                    {
+                        // Reduce source stack
+                        ItemToMove.ItemQuantity -= AmountToTransfer;
+                        Items[ItemIndexToTransfer] = ItemToMove;
+                        UpdateUI(ItemIndexToTransfer, ItemToMove);
+                        
+                        UE_LOG(LogTemp, Log, TEXT("TransferItem: Partially transferred source stack (%d remaining)"),
+                            ItemToMove.ItemQuantity);
+                    }
+                    
+                    return;
+                }
+            }
+        }
+        
+        // If we get here, we're performing a swap instead of stacking
+        UE_LOG(LogTemp, Log, TEXT("TransferItem: Swapping items between slots - Source: %s, Destination: %s"),
+            *ItemToMove.RegistryKey.ToString(), *DestinationItem.RegistryKey.ToString());
+        
+        // Save copies of both items
+        FItemStructure SourceItemCopy = ItemToMove;
+        FItemStructure DestinationItemCopy = DestinationItem;
+        
+        // Step 1: Update the destination slot with the source item
+        ToComponent->Items[ToSpecificIndex] = SourceItemCopy;
+        ToComponent->UpdateUI(ToSpecificIndex, SourceItemCopy);
+        
+        // Step 2: Update the source slot with the destination item
+        Items[ItemIndexToTransfer] = DestinationItemCopy;
+        UpdateUI(ItemIndexToTransfer, DestinationItemCopy);
+        
+        UE_LOG(LogTemp, Log, TEXT("TransferItem: Successfully swapped items between slots %d and %d"),
+            ItemIndexToTransfer, ToSpecificIndex);
     }
 }
 
@@ -480,11 +556,20 @@ void UItemContainerBase::RemoveItemAtIndex(int32 RemovedIndex, bool& Success)
 {
     if (Items.IsValidIndex(RemovedIndex))
     {
+        // Create empty item and assign it to the slot
+        FItemStructure EmptyItem;
+        Items[RemovedIndex] = EmptyItem;
+        
+        // Update UI to show empty slot
+        UpdateUI(RemovedIndex, EmptyItem);
+        
         Success = true;
+        UE_LOG(LogTemp, Log, TEXT("RemoveItemAtIndex: Successfully removed item at index %d"), RemovedIndex);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("RemoveItemAtIndex: Item not removed at index!"))
+        Success = false;
+        UE_LOG(LogTemp, Warning, TEXT("RemoveItemAtIndex: Invalid index %d"), RemovedIndex);
     }
 }
 
