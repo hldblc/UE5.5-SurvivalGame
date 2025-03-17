@@ -119,13 +119,17 @@ enum class E_DamageType : uint8
 UENUM(BlueprintType)
 enum class E_WeaponType : uint8
 {
-    None        UMETA(DisplayName = "None"),
+    None        UMETA(DisplayName = "Default"),
+    Hatchet     UMETA(DisplayName = "Hatchet"),
     Sword       UMETA(DisplayName = "Sword"),
     Axe         UMETA(DisplayName = "Axe"),
     Spear       UMETA(DisplayName = "Spear"),
     Bow         UMETA(DisplayName = "Bow"),
     Staff       UMETA(DisplayName = "Staff"),
-    Shield      UMETA(DisplayName = "Shield")
+    Shield      UMETA(DisplayName = "Shield"),
+    Swimming    UMETA(DisplayName = "Swimming"),
+    Fishing     UMETA(DisplayName = "Fishing"),
+    Invalid     UMETA(HIDDEN)
 };
 
 /**

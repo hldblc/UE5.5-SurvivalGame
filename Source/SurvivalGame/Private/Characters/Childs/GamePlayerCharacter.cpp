@@ -4,6 +4,8 @@
 #include "Components/Inventory/ItemContainerBase.h"
 #include "Components/Inventory/Child/PlayerInventory.h"
 #include "Interfaces/ControllerInterface.h"
+#include "Inventory/Child/PlayerHotbarComponent.h"
+#include "UI/Widgets/Hotbar/PlayerHotbar.h"
 
 // Sets default values
 AGamePlayerCharacter::AGamePlayerCharacter()
@@ -14,6 +16,10 @@ AGamePlayerCharacter::AGamePlayerCharacter()
     // Create and set up the inventory component
     PlayerInventory = CreateDefaultSubobject<UPlayerInventory>(TEXT("PlayerInventory"));
     PlayerInventory->SetIsReplicated(true);
+
+    // Create and set up the hotbar component
+    PlayerHotbar = CreateDefaultSubobject<UPlayerHotbarComponent>(TEXT("PlayerHotbar"));
+    PlayerHotbar->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned

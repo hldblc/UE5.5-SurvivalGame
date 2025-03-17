@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Characters/GameBaseCharacter.h"
 #include "Components/Inventory/Child/PlayerInventory.h"
+#include "Components/Inventory/Child/PlayerHotbarComponent.h" 
 #include "GamePlayerCharacter.generated.h"
 
 UCLASS(Blueprintable, BlueprintType)
@@ -24,6 +25,10 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config|Inventory")
     class UPlayerInventory* PlayerInventory;
+
+    // Inside the AGamePlayerCharacter class declaration
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Config|Inventory")
+    class UPlayerHotbarComponent* PlayerHotbar;
     
 protected:
     // Called when the game starts or when spawned
