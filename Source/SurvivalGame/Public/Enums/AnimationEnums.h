@@ -13,17 +13,17 @@
  * or determining unique behaviors and animations in gameplay.
  */
 UENUM(BlueprintType)
-enum class E_EquipableStates : uint8
+enum class E_EquipableAnimationStates : uint8
 {
-	None        UMETA(DisplayName = "Default"),
-	Hatchet     UMETA(DisplayName = "Hatchet"),
-	Sword       UMETA(DisplayName = "Sword"),
-	Axe         UMETA(DisplayName = "Axe"),
-	Spear       UMETA(DisplayName = "Spear"),
-	Bow         UMETA(DisplayName = "Bow"),
-	Staff       UMETA(DisplayName = "Staff"),
-	Shield      UMETA(DisplayName = "Shield"),
-	Swimming    UMETA(DisplayName = "Swimming"),
-	Fishing     UMETA(DisplayName = "Fishing"),
+	DefaultState     UMETA(DisplayName = "DefaultState"),
+	HatchetState     UMETA(DisplayName = "HatchetState"),
+	SwordState       UMETA(DisplayName = "SwordState"),
+	AxeState         UMETA(DisplayName = "AxeState"),
+	SpearState       UMETA(DisplayName = "SpearState"),
+	BowState         UMETA(DisplayName = "BowState"),
+	StaffState       UMETA(DisplayName = "StaffState"),
+	ShieldState      UMETA(DisplayName = "ShieldState"),
+	SwimmingState    UMETA(DisplayName = "SwimmingState"),
+	FishingState     UMETA(DisplayName = "FishingState"),
 	Invalid     UMETA(HIDDEN)
 };
