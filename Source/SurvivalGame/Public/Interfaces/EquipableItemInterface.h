@@ -23,6 +23,6 @@ class SURVIVALGAME_API IEquipableItemInterface
 public:
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Equipable")
-	void GetEquipableInfo(FName& OutSocketName, E_EquipableAnimationStates& OutEquipableAnimationState);
-	
+	void GetEquipableInfo(FName& OutSocketName, E_EquipableAnimationStates& OutEquipableAnimationState, bool&OutIsTwoHanded, FName& OutTwoHandedSocketName);
+
 };
